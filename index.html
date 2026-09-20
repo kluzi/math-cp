@@ -762,15 +762,26 @@ function gridPositions(n, rows){
 // nombres à trouver et entourer une à une (le lasso reste actif pour chaque nouvelle paire)
 function makePairs(){
   const N = rnd(4,9);
-  const pairCount = 3;
+  const pairCount = rnd(3,4);
+  const total = 12;
   const nums = [];
   for(let k=0;k<pairCount;k++){
     const a = rnd(Math.max(0,N-9), Math.min(9,N));
     nums.push(a, N-a);
   }
+  const pairMemberCount = nums.length;
+  // leurres : des nombres qui ne font PAS N avec aucun autre nombre déjà présent,
+  // pour que l'enfant puisse se tromper en les entourant
+  let guard = 0;
+  while(nums.length < total && guard < 300){
+    guard++;
+    const d = rnd(0,9);
+    if(nums.some(x=>x+d===N)) continue;
+    nums.push(d);
+  }
   const numbers = shuffle(nums);
   const positions = gridPositions(numbers.length, 2);
-  return { kind:'pairs', target:N, numbers, positions,
+  return { kind:'pairs', target:N, numbers, positions, pairMemberCount,
     instruction:`Entoure toutes les façons de faire ${N} avec deux nombres.`,
     answerLabel:`des paires qui font ${N}`, bonus:false };
 }
@@ -1119,7 +1130,7 @@ function renderInteraction(item){
 
 function checkItem(item){
   if(item.kind==='draw' || item.kind==='decompose') return item.start + session.tapState.length === item.target;
-  if(item.kind==='pairs') return session.tapState.used.size === item.numbers.length;
+  if(item.kind==='pairs') return session.tapState.used.size === item.pairMemberCount;
   if(item.kind==='fingers') return session.tapState.dots.length === item.target && session.tapState.digit === item.target;
   if(item.kind==='lasso'){
     let inCat=0, outCat=0;
