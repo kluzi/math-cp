@@ -125,23 +125,21 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .speak-btn:active{transform:scale(.9);}
 .target-badge{display:inline-flex; align-items:center; justify-content:center; min-width:38px; height:38px; padding:0 10px; border-radius:12px; background:var(--dc,var(--ne)); color:#fff; font-weight:800; font-size:18px; margin-left:6px;}
 
-.tap-grid{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; padding:18px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:18px;}
-.tap-grid.row-layout{flex-wrap:nowrap; overflow-x:auto; justify-content:flex-start;}
-.obj-tile{width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; transition:transform .1s ease;}
-.obj-tile:active{transform:scale(.9);}
-.obj-tile svg{width:34px; height:34px;}
-.obj-tile.style-fill{background:#f4efe3; border:2.5px dashed #d8cfb8;}
-.obj-tile.style-fill.chosen{background:#fff; border:2.5px solid var(--dc,var(--ne));}
-.obj-tile.style-fill:not(.chosen) svg{visibility:hidden;}
-.obj-tile.style-circle{background:#f7f3ea;}
-.obj-tile.style-circle.chosen{box-shadow:0 0 0 3.5px var(--dc,var(--ne)) inset; background:#fff;}
-.obj-tile.style-color{background:#f7f3ea;}
-.obj-tile.style-color svg{opacity:.35; filter:grayscale(1);}
-.obj-tile.style-color.chosen svg{opacity:1; filter:none;}
-.obj-tile.locked{pointer-events:none;}
-.obj-tile .check-badge{position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; font-weight:900;}
-.obj-tile .check-badge.ok{background:var(--ok);}
-.obj-tile .check-badge.bad{background:var(--bad);}
+.draw-wrap{position:relative; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:12px; margin-bottom:8px;}
+.draw-svg{width:100%; height:auto; display:block; touch-action:none;}
+.interaction-hint{font-size:12.5px; color:var(--ink-soft); text-align:center; font-weight:700; margin-bottom:16px;}
+.scatter-wrap{position:relative; width:100%; aspect-ratio:16/10; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:8px; overflow:hidden;}
+.scatter-wrap.lasso-mode{touch-action:none;}
+.lasso-svg{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
+.lasso-obj{position:absolute; transform:translate(-50%,-50%); width:46px; height:46px; display:flex; align-items:center; justify-content:center; pointer-events:none; border-radius:50%; transition:box-shadow .15s ease;}
+.lasso-obj svg{width:32px; height:32px;}
+.lasso-obj.chosen{box-shadow:0 0 0 3px var(--dc,var(--ne)) inset; background:#fff;}
+.color-palette{display:flex; gap:10px; justify-content:center; margin-bottom:14px;}
+.swatch{width:38px; height:38px; border-radius:50%; border:3px solid transparent; box-shadow:var(--shadow);}
+.swatch.active{border-color:var(--ink); transform:scale(1.12);}
+.color-obj{position:absolute; transform:translate(-50%,-50%); width:44px; height:44px; border-radius:50%;}
+.color-obj .obj-icon, .color-obj .obj-scribble{position:absolute; inset:0; width:100%; height:100%;}
+.color-obj .obj-scribble{pointer-events:none; display:none;}
 
 .pattern-row{display:flex; gap:10px; padding:20px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:18px; flex-wrap:wrap; justify-content:center;}
 .pattern-cell{width:48px; height:48px; border-radius:14px; background:#f4efe3; border:2.5px dashed #d8cfb8;}
@@ -606,14 +604,33 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function sampleDistinct(pool, n){ return shuffle(pool).slice(0,n); }
 
-// Génère une question "compte à atteindre" (fill / circle / color)
-function makeCountTap({style, target, extraMin=1, extraMax=4, maxTotal=12, instruction}){
-  let total, locked;
-  if(style==='fill'){ total = target; locked = rnd(0, target-1); }
-  else { const extra = rnd(extraMin, extraMax); total = Math.min(maxTotal, target+extra); locked = 0; }
-  const shape = pick(SHAPES);
-  const colors = style==='fill' ? Array(total).fill(pick(PALETTE)) : Array.from({length:total},()=>pick(PALETTE));
-  return { kind:'count_tap', style, target, total, locked, shape, colors, layout: style==='fill'?'grid':pick(['grid','row']), instruction, bonus:false };
+// Positions dispersées (non superposées) dans une zone normalisée [0..1]
+function scatterPositions(n){
+  const pts = [];
+  let attempts = 0;
+  while(pts.length < n && attempts < n*50){
+    attempts++;
+    const x = rnd(8,92)/100, y = rnd(12,88)/100;
+    if(pts.every(p => Math.hypot(p.x-x, p.y-y) > 0.16)) pts.push({x,y});
+  }
+  while(pts.length < n) pts.push({x:rnd(8,92)/100, y:rnd(12,88)/100});
+  return pts;
+}
+// Ex. "Dessine des billes pour compléter" — l'enfant touche pour poser des objets
+function makeDraw({target, instruction}){
+  const start = rnd(0, target-1);
+  const locked = Array.from({length:start}, ()=>({x:rnd(15,85)/100, y:rnd(20,80)/100}));
+  return { kind:'draw', target, start, shape:pick(SHAPES), color:pick(PALETTE), locked, instruction, bonus:false };
+}
+// Ex. "Entoure le nombre d'objets demandé" — l'enfant trace un lasso au doigt
+function makeLasso({target, extraMin=1, extraMax=4, maxTotal=10, instruction}){
+  const total = Math.min(maxTotal, target + rnd(extraMin, extraMax));
+  return { kind:'lasso', target, total, shape:pick(SHAPES), colors:Array.from({length:total},()=>pick(PALETTE)), positions:scatterPositions(total), instruction, bonus:false };
+}
+// Ex. "Colorie le nombre d'objets demandé" — choisir une couleur puis gribouiller
+function makeColor({target, extraMin=1, extraMax=4, maxTotal=12, instruction}){
+  const total = Math.min(maxTotal, target + rnd(extraMin, extraMax));
+  return { kind:'color', target, total, shape:pick(SHAPES), positions:scatterPositions(total), instruction, bonus:false };
 }
 function makePattern(){
   const [c0,c1] = sampleDistinct(PALETTE, 2);
@@ -624,23 +641,23 @@ function makePattern(){
 
 function buildChapterNE01(){
   const items = [];
-  // Exercice 1 — compléter une collection (style fill)
+  // Exercice 1 — dessiner des billes pour compléter les boîtes
   const targets1 = sampleDistinct([3,4,5,6,7,8,9,10], 4);
-  targets1.forEach(t=> items.push(makeCountTap({style:'fill', target:t, instruction:`Touche les cases vides pour obtenir ${t}.`})));
+  targets1.forEach(t=> items.push(makeDraw({target:t, instruction:`Dessine des billes pour obtenir ${t}.`})));
   // Exercice 2 — entourer le bon nombre (petites collections en vrac)
   for(let i=0;i<4;i++){
     const t = rnd(1,8);
-    items.push(makeCountTap({style:'circle', target:t, extraMin:1, extraMax:3, maxTotal:10, instruction:`Touche ${t===1?'1 objet':'exactement '+t+' objets'}.`}));
+    items.push(makeLasso({target:t, extraMin:1, extraMax:3, maxTotal:9, instruction:`Entoure ${t===1?'1 objet':'exactement '+t+' objets'}.`}));
   }
-  // Exercice 3 — entourer dans une rangée
+  // Exercice 3 — entourer dans une collection plus fournie
   for(let i=0;i<3;i++){
     const t = rnd(6,9);
-    items.push(makeCountTap({style:'circle', target:t, extraMin:1, extraMax:2, maxTotal:10, instruction:`Touche exactement ${t} objets dans la rangée.`}));
+    items.push(makeLasso({target:t, extraMin:1, extraMax:2, maxTotal:10, instruction:`Entoure exactement ${t} objets.`}));
   }
-  // Exercice 4 — colorier le bon nombre
-  for(let i=0;i<3;i++){
+  // Exercice 4 — choisir une couleur et colorier le bon nombre d'objets
+  for(let i=0;i<4;i++){
     const t = rnd(4,10);
-    items.push(makeCountTap({style:'color', target:t, extraMin:1, extraMax:3, maxTotal:12, instruction:`Colorie exactement ${t} objets.`}));
+    items.push(makeColor({target:t, extraMin:1, extraMax:3, maxTotal:12, instruction:`Choisis une couleur puis colorie exactement ${t} objets.`}));
   }
   // Bonus du jour — suite qui se répète
   items.push(makePattern());
@@ -683,8 +700,9 @@ function renderSessionItem(){
   const el = document.getElementById('screen-session');
   el.style.setProperty('--dc', d.hex);
 
-  session.tapState = item.kind==='count_tap'
-    ? Array.from({length:item.total}, (_,i)=> i<item.locked)
+  session.tapState = item.kind==='draw' ? []
+    : item.kind==='lasso' ? new Set()
+    : item.kind==='color' ? Array(item.total).fill(null)
     : item.sequence.map((v,i)=> i<item.hiddenFrom ? v : null);
 
   el.innerHTML = `
@@ -709,22 +727,100 @@ function renderSessionItem(){
   speak(item.instruction);
 }
 
+// Trace un contour "dessiné à la main" (léger tremblé) autour d'un centre
+function wobblePath(cx, cy, r){
+  const pts = 9, coords = [];
+  for(let i=0;i<pts;i++){
+    const a = (i/pts) * Math.PI*2;
+    const jitter = r * (0.8 + Math.random()*0.35);
+    coords.push([cx + Math.cos(a)*jitter, cy + Math.sin(a)*jitter]);
+  }
+  let d = `M ${coords[0][0].toFixed(1)} ${coords[0][1].toFixed(1)} `;
+  for(let i=1;i<=pts;i++){
+    const [x,y] = coords[i%pts], [px,py] = coords[i-1];
+    d += `Q ${px.toFixed(1)} ${py.toFixed(1)} ${((px+x)/2).toFixed(1)} ${((py+y)/2).toFixed(1)} `;
+  }
+  return d + 'Z';
+}
+function pointInPolygon(x, y, poly){
+  let inside = false;
+  for(let i=0, j=poly.length-1; i<poly.length; j=i++){
+    const xi=poly[i].x, yi=poly[i].y, xj=poly[j].x, yj=poly[j].y;
+    if(((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi)) inside = !inside;
+  }
+  return inside;
+}
+function scribblePath(color){
+  return `<path d="M4 8 Q8 4 12 8 T20 8 M4 12 Q8 16 12 12 T20 12 M4 16 Q8 12 12 16 T20 16" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round"/>`;
+}
+
 function renderInteraction(item){
   const zone = document.getElementById('interaction-zone');
-  if(item.kind==='count_tap'){
-    zone.innerHTML = `<div class="tap-grid ${item.layout==='row'?'row-layout':''}">${
-      Array.from({length:item.total}, (_,i)=>{
-        const svg = shapeSVG(item.shape, item.colors[i]);
-        const chosen = session.tapState[i];
-        const locked = i<item.locked;
-        return `<div class="obj-tile style-${item.style} ${chosen?'chosen':''} ${locked?'locked':''}" data-i="${i}">${svg}</div>`;
-      }).join('')
-    }</div>`;
-    zone.querySelectorAll('.obj-tile:not(.locked)').forEach(t=>t.addEventListener('click', ()=>{
+  if(item.kind==='draw'){
+    const VB = {w:300, h:170};
+    zone.innerHTML = `<div class="draw-wrap"><svg id="draw-svg" viewBox="0 0 ${VB.w} ${VB.h}" class="draw-svg"></svg></div>
+      <div class="interaction-hint">Touche à l'intérieur du cadre pour dessiner une bille</div>`;
+    const svg = document.getElementById('draw-svg');
+    const paint = ()=>{
+      svg.innerHTML = `<rect id="draw-rect" x="4" y="4" width="${VB.w-8}" height="${VB.h-8}" rx="18" fill="none" stroke="${d3colorVar()}" stroke-width="3" stroke-dasharray="6 6"/>`
+        + item.locked.map(p=>`<path d="${wobblePath(p.x*VB.w, p.y*VB.h, 15)}" fill="${item.color}"/>`).join('')
+        + session.tapState.map(p=>`<path d="${wobblePath(p.x, p.y, 15)}" fill="${item.color}"/>`).join('');
+    };
+    function d3colorVar(){ return getComputedStyle(document.getElementById('screen-session')).getPropertyValue('--dc') || '#e2507a'; }
+    paint();
+    svg.addEventListener('pointerdown', (e)=>{
       if(session.answered) return;
-      const i = parseInt(t.dataset.i);
-      session.tapState[i] = !session.tapState[i];
-      t.classList.toggle('chosen', session.tapState[i]);
+      const rect = svg.getBoundingClientRect();
+      const x = (e.clientX-rect.left)/rect.width*VB.w, y = (e.clientY-rect.top)/rect.height*VB.h;
+      if(x<20||x>VB.w-20||y<18||y>VB.h-18) return;
+      const hit = session.tapState.findIndex(p=>Math.hypot(p.x-x,p.y-y) < 18);
+      if(hit>=0) session.tapState.splice(hit,1); else session.tapState.push({x,y});
+      paint();
+    });
+  } else if(item.kind==='lasso'){
+    zone.innerHTML = `<div class="scatter-wrap lasso-mode" id="scatter-wrap">
+        ${item.positions.map((p,i)=>`<div class="lasso-obj" data-i="${i}" style="left:${p.x*100}%; top:${p.y*100}%">${shapeSVG(item.shape, item.colors[i])}</div>`).join('')}
+        <svg class="lasso-svg" id="lasso-svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="interaction-hint">Trace un trait autour des objets à choisir</div>`;
+    const wrap = document.getElementById('scatter-wrap');
+    const lsvg = document.getElementById('lasso-svg');
+    let drawing = false, path = [];
+    const dc = getComputedStyle(document.getElementById('screen-session')).getPropertyValue('--dc') || '#e2507a';
+    const ptFromEvent = (e)=>{ const r = wrap.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width*100, y:(e.clientY-r.top)/r.height*100}; };
+    const drawLine = ()=>{ lsvg.innerHTML = path.length>1 ? `<polyline points="${path.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${dc}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` : ''; };
+    wrap.addEventListener('pointerdown', (e)=>{
+      if(session.answered) return;
+      drawing = true; path = [ptFromEvent(e)];
+      wrap.setPointerCapture(e.pointerId);
+    });
+    wrap.addEventListener('pointermove', (e)=>{ if(!drawing) return; path.push(ptFromEvent(e)); drawLine(); });
+    wrap.addEventListener('pointerup', ()=>{
+      if(!drawing) return;
+      drawing = false;
+      if(path.length>2){
+        session.tapState = new Set(item.positions.map((p,i)=>i).filter(i=>pointInPolygon(item.positions[i].x*100, item.positions[i].y*100, path)));
+      }
+      path = []; drawLine();
+      wrap.querySelectorAll('.lasso-obj').forEach(el=> el.classList.toggle('chosen', session.tapState.has(parseInt(el.dataset.i))));
+    });
+  } else if(item.kind==='color'){
+    zone.innerHTML = `<div class="color-palette">${PALETTE.map((c,i)=>`<button class="swatch ${i===0?'active':''}" data-c="${c}" style="background:${c}"></button>`).join('')}</div>
+      <div class="scatter-wrap" id="scatter-wrap">
+        ${item.positions.map((p,i)=>`<div class="color-obj" data-i="${i}" style="left:${p.x*100}%; top:${p.y*100}%"><div class="obj-icon">${shapeSVG(item.shape,'#e7ddc9')}</div><svg viewBox="0 0 24 24" class="obj-scribble" data-i="${i}"></svg></div>`).join('')}
+      </div>
+      <div class="interaction-hint">Choisis une couleur puis touche les objets à colorier</div>`;
+    let activeColor = PALETTE[0];
+    document.querySelectorAll('.swatch').forEach(s=>s.addEventListener('click', ()=>{
+      document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('active'));
+      s.classList.add('active'); activeColor = s.dataset.c;
+    }));
+    document.querySelectorAll('.color-obj').forEach(el=>el.addEventListener('click', ()=>{
+      if(session.answered) return;
+      const i = parseInt(el.dataset.i);
+      const scribble = el.querySelector('.obj-scribble');
+      if(session.tapState[i]){ session.tapState[i]=null; scribble.style.display='none'; scribble.innerHTML=''; }
+      else { session.tapState[i]=activeColor; scribble.style.display='block'; scribble.innerHTML=scribblePath(activeColor); }
     }));
   } else if(item.kind==='pattern'){
     zone.innerHTML = `<div class="pattern-row">${
@@ -750,15 +846,27 @@ function renderInteraction(item){
 }
 
 function checkItem(item){
-  if(item.kind==='count_tap'){
-    const chosen = session.tapState.filter(Boolean).length;
-    return chosen === item.target;
-  } else {
-    const item2 = item;
-    for(let i=item2.hiddenFrom;i<item2.sequence.length;i++){
-      if(session.tapState[i] !== item2.sequence[i]) return false;
-    }
-    return true;
+  if(item.kind==='draw') return item.start + session.tapState.length === item.target;
+  if(item.kind==='lasso') return session.tapState.size === item.target;
+  if(item.kind==='color') return session.tapState.filter(Boolean).length === item.target;
+  for(let i=item.hiddenFrom;i<item.sequence.length;i++){
+    if(session.tapState[i] !== item.sequence[i]) return false;
+  }
+  return true;
+}
+
+function markAnswered(item, ok){
+  const col = ok ? 'var(--ok)' : 'var(--bad)';
+  if(item.kind==='draw'){
+    const rect = document.getElementById('draw-rect');
+    if(rect) rect.setAttribute('stroke', col);
+  } else if(item.kind==='lasso'){
+    document.querySelectorAll('.lasso-obj.chosen').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; el.style.background='#fff'; });
+  } else if(item.kind==='color'){
+    document.querySelectorAll('.color-obj').forEach(el=>{
+      const i = parseInt(el.dataset.i);
+      if(session.tapState[i]) el.style.boxShadow = `0 0 0 3px ${col} inset`;
+    });
   }
 }
 
@@ -771,18 +879,7 @@ function onValidate(){
     session.totalScored++;
     if(ok) session.correctCount++; else session.wrong.push(item);
   }
-  // marque visuellement les tuiles pour count_tap
-  if(item.kind==='count_tap'){
-    document.querySelectorAll('.obj-tile').forEach(t=>{
-      const i = parseInt(t.dataset.i);
-      if(session.tapState[i]){
-        const badge = document.createElement('div');
-        badge.className = 'check-badge ' + (ok?'ok':'bad');
-        badge.innerHTML = ok? '✓' : '✕';
-        t.appendChild(badge);
-      }
-    });
-  }
+  markAnswered(item, ok);
   const fb = document.getElementById('feedback-zone');
   fb.innerHTML = `<div class="feedback-box ${ok?'ok':'bad'}">
     <div class="ic">${ICON(ok?'check':'cross')}</div>
@@ -793,8 +890,8 @@ function onValidate(){
   btn.onclick = nextItem;
 }
 function answerHint(item){
-  if(item.kind==='count_tap') return `${item.target}`;
-  return 'la suite qui se répète';
+  if(item.kind==='pattern') return 'la suite qui se répète';
+  return `${item.target}`;
 }
 function nextItem(){
   if(session.idx < session.items.length-1){ session.idx++; renderSessionItem(); }
@@ -850,7 +947,7 @@ function renderResult(pct, stars, starsEarned){
       <div class="stars-row">${[1,2,3].map(i=>starSVG(i<=stars)).join('')}</div>
       ${starsEarned?`<div class="pill" style="background:var(--gold); color:#5a3d00; display:inline-flex; margin-top:4px;">+${starsEarned} étoile gagnée !</div>`:''}
     </div>
-    ${session.wrong.length? `<div class="section-label">À revoir</div><div class="errors-list">${session.wrong.map(w=>`<div class="error-item">${w.kind==='count_tap'?`Objectif : ${w.target}`:'Suite à continuer'}</div>`).join('')}</div>`:''}
+    ${session.wrong.length? `<div class="section-label">À revoir</div><div class="errors-list">${session.wrong.map(w=>`<div class="error-item">${w.kind==='pattern'?'Suite à continuer':`Objectif : ${w.target}`}</div>`).join('')}</div>`:''}
     <button class="btn btn-primary btn-block" id="result-continue" style="margin-top:18px">Continuer</button>
     ${session.wrong.length?`<button class="btn btn-outline btn-block" id="result-retry" style="margin-top:10px">Rejouer les erreurs</button>`:''}
   `;
