@@ -112,6 +112,7 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .mission-svg{width:100%; height:auto; max-height:110px; margin-bottom:10px; display:block;}
 .empty-state{text-align:center; padding:40px 20px; color:var(--ink-soft);}
 .empty-state .ic{width:56px; height:56px; margin:0 auto 12px;}
+.ic svg{width:100%; height:100%; display:block;}
 
 /* ---------- Session ---------- */
 .session-topbar{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
@@ -131,6 +132,7 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .scatter-wrap{position:relative; width:100%; aspect-ratio:16/8; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:6px; overflow:hidden;}
 .scatter-wrap.lasso-mode{touch-action:none;}
 .drag-swatch{cursor:grab; touch-action:none; width:44px; height:44px; border-radius:12px; background:#fff; border:none; padding:4px;}
+.drag-swatch svg{width:100%; height:100%; display:block;}
 .drag-ghost{position:fixed; width:32px; height:32px; border-radius:50%; pointer-events:none; z-index:999; box-shadow:var(--shadow-lg);}
 .lasso-svg{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
 .lasso-obj{position:absolute; transform:translate(-50%,-50%); width:46px; height:46px; display:flex; align-items:center; justify-content:center; pointer-events:none; border-radius:50%; transition:box-shadow .15s ease;}
@@ -279,7 +281,7 @@ function shapeSVG(shape, color){
     default: return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="${c}"/></svg>`;
   }
 }
-function ICON(name){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`; }
+function ICON(name){ return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`; }
 const ICONS = {
   lock:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
   trophy:'<path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5H4v2a4 4 0 0 0 4 3"/><path d="M16 5h4v2a4 4 0 0 1-4 3"/><path d="M12 12v4"/><path d="M9 20h6"/><path d="M9 17h6v3H9z"/>',
@@ -473,12 +475,12 @@ function domainRow(d){
 }
 function domainIcon(id){
   const map = {
-    NE:'<svg viewBox="0 0 24 24"><text x="12" y="17" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="sans-serif">123</text></svg>',
-    CA:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
-    RP:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
-    GM:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 12h16M4 12l3-3M4 12l3 3M20 12l-3-3M20 12l-3 3"/></svg>',
-    EG:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><rect x="4" y="4" width="7" height="7" rx="1.5"/><circle cx="16.5" cy="7.5" r="3.5"/><path d="M4 20l7-7 4 4 5-5"/></svg>',
-    OG:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>',
+    NE:'<svg width="26" height="26" viewBox="0 0 24 24"><text x="12" y="17" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="sans-serif">123</text></svg>',
+    CA:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    RP:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+    GM:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 12h16M4 12l3-3M4 12l3 3M20 12l-3-3M20 12l-3 3"/></svg>',
+    EG:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><rect x="4" y="4" width="7" height="7" rx="1.5"/><circle cx="16.5" cy="7.5" r="3.5"/><path d="M4 20l7-7 4 4 5-5"/></svg>',
+    OG:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>',
   };
   return map[id]||'';
 }
