@@ -671,11 +671,12 @@ function makeLasso(){
 function makeColor(){
   const catCount = pick([2,2,3]);
   const shapes = sampleDistinct(SHAPES, catCount);
-  const categories = shapes.map(shape => ({shape, color: pick(PALETTE), count: rnd(2,5)}));
+  const categories = shapes.map(shape => ({shape, color: pick(PALETTE)}));
+  categories.forEach(c=>{ c.target = rnd(2,4); c.count = c.target + rnd(1,2); });
   const objects = [];
   categories.forEach((c,ci)=>{ for(let k=0;k<c.count;k++) objects.push({shape:c.shape, color:c.color, cat:ci}); });
   const positions = scatterFlat(objects.length);
-  const parts = categories.map(c=>`${c.count} ${shapeNoun(c.shape,c.count)} en ${COLOR_NAME[c.color]}`);
+  const parts = categories.map(c=>`${c.target} ${shapeNoun(c.shape,c.target)} en ${COLOR_NAME[c.color]}`);
   return { kind:'color', categories, objects, positions,
     instruction:`Colorie ${joinFr(parts)}.`, answerLabel:joinFr(parts), bonus:false };
 }
@@ -914,7 +915,14 @@ function checkItem(item){
     return inCat===item.target && outCat===0;
   }
   if(item.kind==='color'){
-    return item.objects.every((o,i)=> session.tapState[i] === item.categories[o.cat].color);
+    return item.categories.every((cat,ci)=>{
+      let good=0, bad=0;
+      item.objects.forEach((o,i)=>{
+        if(o.cat!==ci || !session.tapState[i]) return;
+        session.tapState[i]===cat.color ? good++ : bad++;
+      });
+      return good===cat.target && bad===0;
+    });
   }
   for(let i=item.hiddenFrom;i<item.sequence.length;i++){
     if(session.tapState[i] !== item.sequence[i]) return false;
