@@ -130,7 +130,7 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .interaction-hint{font-size:12px; color:var(--ink-soft); text-align:center; font-weight:700; margin-bottom:10px;}
 .scatter-wrap{position:relative; width:100%; aspect-ratio:16/8; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:6px; overflow:hidden;}
 .scatter-wrap.lasso-mode{touch-action:none;}
-.drag-swatch{cursor:grab; touch-action:none;}
+.drag-swatch{cursor:grab; touch-action:none; width:44px; height:44px; border-radius:12px; background:#fff; border:none; padding:4px;}
 .drag-ghost{position:fixed; width:32px; height:32px; border-radius:50%; pointer-events:none; z-index:999; box-shadow:var(--shadow-lg);}
 .lasso-svg{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
 .lasso-obj{position:absolute; transform:translate(-50%,-50%); width:46px; height:46px; display:flex; align-items:center; justify-content:center; pointer-events:none; border-radius:50%; transition:box-shadow .15s ease;}
@@ -139,9 +139,8 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .color-palette{display:flex; gap:10px; justify-content:center; margin-bottom:14px;}
 .swatch{width:38px; height:38px; border-radius:50%; border:3px solid transparent; box-shadow:var(--shadow);}
 .swatch.active{border-color:var(--ink); transform:scale(1.12);}
-.color-obj{position:absolute; transform:translate(-50%,-50%); width:44px; height:44px; border-radius:50%;}
-.color-obj .obj-icon, .color-obj .obj-scribble{position:absolute; inset:0; width:100%; height:100%;}
-.color-obj .obj-scribble{pointer-events:none; display:none;}
+.color-obj{position:absolute; transform:translate(-50%,-50%); width:40px; height:40px;}
+.color-obj svg{width:100%; height:100%;}
 
 .pattern-row{display:flex; gap:10px; padding:20px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:18px; flex-wrap:wrap; justify-content:center;}
 .pattern-cell{width:48px; height:48px; border-radius:14px; background:#f4efe3; border:2.5px dashed #d8cfb8;}
@@ -618,18 +617,6 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function sampleDistinct(pool, n){ return shuffle(pool).slice(0,n); }
 
-// Positions dispersées (non superposées) dans une zone normalisée [0..1]
-function scatterPositions(n){
-  const pts = [];
-  let attempts = 0;
-  while(pts.length < n && attempts < n*60){
-    attempts++;
-    const x = rnd(8,92)/100, y = rnd(12,88)/100;
-    if(pts.every(p => Math.hypot(p.x-x, p.y-y) > 0.15)) pts.push({x,y});
-  }
-  while(pts.length < n) pts.push({x:rnd(8,92)/100, y:rnd(12,88)/100});
-  return pts;
-}
 // Noms français (singulier/pluriel) pour chaque forme
 const SHAPE_META = {
   circle:{s:'rond', p:'ronds'}, star:{s:'étoile', p:'étoiles'}, flower:{s:'fleur', p:'fleurs'},
@@ -639,18 +626,41 @@ const SHAPE_META = {
 const COLOR_NAME = {'#e2507a':'rose','#f2784f':'orange','#3fae62':'vert','#2f7fd6':'bleu','#e0a83e':'jaune','#8a5fd6':'violet'};
 function shapeNoun(shape, count){ return count>1 ? SHAPE_META[shape].p : SHAPE_META[shape].s; }
 
-// Construit une scène mélangée : 2-3 catégories (forme+couleur propres), une catégorie cible
+// Construit une scène mélangée : 2-3 catégories (forme+couleur propres) regroupées
+// spatialement (chaque catégorie a son propre "nuage" de points, bien séparé des
+// autres) pour qu'un lasso autour d'une seule catégorie reste toujours faisable.
+// La catégorie cible affiche plus d'objets que le nombre demandé (vrai comptage).
 function buildScatterScene(){
   const catCount = pick([2,3]);
   const shapes = sampleDistinct(SHAPES, catCount);
   const categories = shapes.map(shape => ({shape, color: pick(PALETTE)}));
   const targetIdx = rnd(0, categories.length-1);
-  categories.forEach((c,i)=> c.count = i===targetIdx ? rnd(3,8) : rnd(2,7));
-  const objects = [];
-  categories.forEach((c,ci)=>{ for(let k=0;k<c.count;k++) objects.push({shape:c.shape, color:c.color, cat:ci}); });
-  const positions = scatterPositions(objects.length);
-  const targetIndices = new Set(objects.map((o,i)=>i).filter(i=>objects[i].cat===targetIdx));
-  return { categories, targetIdx, objects, positions, targetIndices };
+  categories.forEach((c,i)=>{
+    if(i===targetIdx){ c.target = rnd(3,5); c.count = c.target + rnd(2,3); }
+    else c.count = rnd(2,5);
+  });
+  const centers = [];
+  categories.forEach(()=>{
+    let c, tries=0;
+    do{ c = {x:rnd(22,78)/100, y:rnd(24,76)/100}; tries++; }
+    while(tries<40 && centers.some(o=>Math.hypot(o.x-c.x,o.y-c.y) < 0.36));
+    centers.push(c);
+  });
+  const objects = [], positions = [];
+  categories.forEach((cat,ci)=>{
+    for(let k=0;k<cat.count;k++){
+      let p, tries=0;
+      do{
+        const ang = Math.random()*Math.PI*2, rad = Math.random()*0.15;
+        p = { x:Math.min(0.93,Math.max(0.07, centers[ci].x+Math.cos(ang)*rad)),
+              y:Math.min(0.89,Math.max(0.11, centers[ci].y+Math.sin(ang)*rad)) };
+        tries++;
+      } while(tries<30 && positions.some(q=>Math.hypot(q.x-p.x,q.y-p.y) < 0.075));
+      positions.push(p);
+      objects.push({shape:cat.shape, color:cat.color, cat:ci});
+    }
+  });
+  return { categories, targetIdx, objects, positions };
 }
 
 // Ex. "Dessine des billes pour compléter" — l'enfant touche pour poser des ronds classiques
@@ -659,22 +669,23 @@ function makeDraw({target}){
   const locked = Array.from({length:start}, ()=>({x:rnd(15,85)/100, y:rnd(20,80)/100}));
   return { kind:'draw', target, start, color:pick(PALETTE), locked, instruction:`Dessine des billes pour obtenir ${target}.`, answerLabel:`${target} billes`, bonus:false };
 }
-// Ex. "Entoure le nombre d'objets demandé" — lasso au doigt, formes mélangées
+// Ex. "Entoure le nombre d'objets demandé" — lasso au doigt, formes mélangées, la
+// forme cible est présente en surplus (il faut en entourer exactement N, pas tous)
 function makeLasso(){
   const scene = buildScatterScene();
-  const target = scene.categories[scene.targetIdx];
-  return { kind:'lasso', target:target.count, ...scene,
-    instruction:`Entoure ${target.count} ${shapeNoun(target.shape, target.count)}.`,
-    answerLabel:`${target.count} ${shapeNoun(target.shape, target.count)}`, bonus:false };
+  const t = scene.categories[scene.targetIdx];
+  return { kind:'lasso', target:t.target, ...scene,
+    instruction:`Entoure ${t.target} ${shapeNoun(t.shape, t.target)}.`,
+    answerLabel:`${t.target} ${shapeNoun(t.shape, t.target)}`, bonus:false };
 }
-// Ex. "Colorie le nombre d'objets demandé" — choisir une couleur puis gribouiller la bonne forme
+// Ex. "Colorie le nombre d'objets demandé" — choisir une couleur puis colorier la bonne forme
 function makeColor(){
   const scene = buildScatterScene();
-  const target = scene.categories[scene.targetIdx];
-  const colorName = COLOR_NAME[target.color];
-  return { kind:'color', target:target.count, targetColor:target.color, ...scene,
-    instruction:`Colorie exactement ${target.count} ${shapeNoun(target.shape, target.count)} en ${colorName}.`,
-    answerLabel:`${target.count} ${shapeNoun(target.shape, target.count)} en ${colorName}`, bonus:false };
+  const t = scene.categories[scene.targetIdx];
+  const colorName = COLOR_NAME[t.color];
+  return { kind:'color', target:t.target, ...scene,
+    instruction:`Colorie exactement ${t.target} ${shapeNoun(t.shape, t.target)} en ${colorName}.`,
+    answerLabel:`${t.target} ${shapeNoun(t.shape, t.target)} en ${colorName}`, bonus:false };
 }
 function makePattern(){
   const [c0,c1] = sampleDistinct(PALETTE, 2);
@@ -774,8 +785,9 @@ function pointInPolygon(x, y, poly){
   }
   return inside;
 }
-function scribblePath(color){
-  return `<path d="M4 8 Q8 4 12 8 T20 8 M4 12 Q8 16 12 12 T20 12 M4 16 Q8 12 12 16 T20 16" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round"/>`;
+// Petit pot de peinture avec sa couleur, utilisé comme "crayon" à glisser-déposer
+function paintPotSVG(color){
+  return `<svg viewBox="0 0 32 32"><path d="M9 13h14l-1.6 13a2 2 0 0 1-2 1.8H12.6a2 2 0 0 1-2-1.8z" fill="#eee6d4" stroke="#cdc2a4" stroke-width="1.5"/><ellipse cx="16" cy="13" rx="7.5" ry="2.8" fill="${color}"/><path d="M13.5 5c-1.2 2.2 1.2 3.2 0 5.2" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round"/></svg>`;
 }
 
 function renderInteraction(item){
@@ -830,7 +842,7 @@ function renderInteraction(item){
   } else if(item.kind==='color'){
     zone.innerHTML = `<div class="color-palette">${PALETTE.map((c,i)=>`<button class="swatch ${i===0?'active':''}" data-c="${c}" style="background:${c}"></button>`).join('')}</div>
       <div class="scatter-wrap" id="scatter-wrap">
-        ${item.objects.map((o,i)=>`<div class="color-obj" data-i="${i}" style="left:${item.positions[i].x*100}%; top:${item.positions[i].y*100}%"><div class="obj-icon">${shapeSVG(o.shape,'#e7ddc9')}</div><svg viewBox="0 0 24 24" class="obj-scribble" data-i="${i}"></svg></div>`).join('')}
+        ${item.objects.map((o,i)=>`<div class="color-obj" data-i="${i}" style="left:${item.positions[i].x*100}%; top:${item.positions[i].y*100}%">${shapeSVG(o.shape,'#e7ddc9')}</div>`).join('')}
       </div>`;
     let activeColor = PALETTE[0];
     document.querySelectorAll('.swatch').forEach(s=>s.addEventListener('click', ()=>{
@@ -840,12 +852,12 @@ function renderInteraction(item){
     document.querySelectorAll('.color-obj').forEach(el=>el.addEventListener('click', ()=>{
       if(session.answered) return;
       const i = parseInt(el.dataset.i);
-      const scribble = el.querySelector('.obj-scribble');
-      if(session.tapState[i]){ session.tapState[i]=null; scribble.style.display='none'; scribble.innerHTML=''; }
-      else { session.tapState[i]=activeColor; scribble.style.display='block'; scribble.innerHTML=scribblePath(activeColor); }
+      const o = item.objects[i];
+      if(session.tapState[i]){ session.tapState[i]=null; el.innerHTML = shapeSVG(o.shape,'#e7ddc9'); }
+      else { session.tapState[i]=activeColor; el.innerHTML = shapeSVG(o.shape, activeColor); }
     }));
   } else if(item.kind==='pattern'){
-    zone.innerHTML = `<div class="color-palette">${item.colors.map(c=>`<div class="swatch drag-swatch" data-c="${c}" style="background:${c}"></div>`).join('')}</div>
+    zone.innerHTML = `<div class="color-palette">${item.colors.map(c=>`<div class="drag-swatch" data-c="${c}">${paintPotSVG(c)}</div>`).join('')}</div>
       <div class="pattern-row" id="pattern-row">${
         item.sequence.map((v,i)=>{
           if(i<item.hiddenFrom) return `<div class="pattern-cell filled" style="background:${v}; border-color:${v}"></div>`;
@@ -896,11 +908,15 @@ function renderInteraction(item){
 function checkItem(item){
   if(item.kind==='draw') return item.start + session.tapState.length === item.target;
   if(item.kind==='lasso'){
-    return session.tapState.size === item.targetIndices.size && [...session.tapState].every(i=>item.targetIndices.has(i));
+    let inCat=0, outCat=0;
+    session.tapState.forEach(i=>{ item.objects[i].cat===item.targetIdx ? inCat++ : outCat++; });
+    return inCat===item.target && outCat===0;
   }
   if(item.kind==='color'){
-    const colored = session.tapState.map((c,i)=>c?i:null).filter(i=>i!==null);
-    return colored.length === item.targetIndices.size && colored.every(i=> item.targetIndices.has(i) && session.tapState[i]===item.targetColor);
+    const t = item.categories[item.targetIdx];
+    let good=0, bad=0;
+    session.tapState.forEach((c,i)=>{ if(!c) return; (item.objects[i].cat===item.targetIdx && c===t.color) ? good++ : bad++; });
+    return good===item.target && bad===0;
   }
   for(let i=item.hiddenFrom;i<item.sequence.length;i++){
     if(session.tapState[i] !== item.sequence[i]) return false;
