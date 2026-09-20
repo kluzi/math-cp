@@ -354,14 +354,17 @@ function goChapter(domainId, num){ nav.screen='chapter'; nav.domainId=domainId; 
    SYNTHÈSE VOCALE
    ============================================================ */
 let frenchVoice = null;
-// Voix féminines connues (iOS/macOS/Windows/Chrome) à privilégier
-const FEMALE_VOICE_NAMES = ['audrey','amelie','amélie','aurelie','aurélie','lea','léa','marie','virginie','celine','céline','flo','chantal','carole','denise','julie','hortense','manon','elise','élise','claire','sandrine','emma','google français','google fran'];
+// Voix féminines "standard" connues (iOS/macOS/Windows/Chrome) à privilégier
+const FEMALE_VOICE_NAMES = ['audrey','amelie','amélie','aurelie','aurélie','lea','léa','marie','virginie','celine','céline','chantal','carole','denise','julie','hortense','manon','elise','élise','claire','sandrine','emma','ines','inès','google français','google fran'];
 // Voix masculines connues, jamais utilisées même en repli
 const MALE_VOICE_NAMES = ['thomas','daniel','nicolas','bruno','paul','henri','xavier','jean','pierre','marc','louis','guillaume','antoine','maxime','yannick'];
+// Voix "fantaisie" (personnages, effets) à toujours exclure : synthèse déformée, incompréhensible pour un enfant
+const NOVELTY_VOICE_NAMES = ['flo','eddy','grandma','grandpa','reed','rocko','sandy','shelley','albert','bahh','bells','boing','bubbles','cellos','bad news','good news','jester','organ','superstar','trinoids','whisper','zarvox','kathy','fred','ralph','junior','princess','deranged','hysterical','bruce','wobble','trinoid'];
 function pickVoice(){
   if(!('speechSynthesis' in window)) return;
   const voices = window.speechSynthesis.getVoices();
-  const fr = voices.filter(v=>v.lang && v.lang.toLowerCase().startsWith('fr'));
+  const isNovelty = v=>NOVELTY_VOICE_NAMES.some(n=>v.name.toLowerCase().includes(n));
+  const fr = voices.filter(v=>v.lang && v.lang.toLowerCase().startsWith('fr') && !isNovelty(v));
   const frFR = fr.filter(v=>v.lang.toLowerCase()==='fr-fr');
   const isFemale = v=>FEMALE_VOICE_NAMES.some(n=>v.name.toLowerCase().includes(n));
   const isMale = v=>MALE_VOICE_NAMES.some(n=>v.name.toLowerCase().includes(n));
@@ -380,7 +383,7 @@ function speak(text){
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'fr-FR';
   if(frenchVoice) u.voice = frenchVoice;
-  u.rate = 0.88; u.pitch = 1.1;
+  u.rate = 1; u.pitch = 1;
   window.speechSynthesis.speak(u);
 }
 
