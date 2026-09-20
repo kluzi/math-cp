@@ -380,7 +380,7 @@ function speak(text){
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'fr-FR';
   if(frenchVoice) u.voice = frenchVoice;
-  u.rate = 0.78; u.pitch = 1.1;
+  u.rate = 0.88; u.pitch = 1.1;
   window.speechSynthesis.speak(u);
 }
 
