@@ -762,26 +762,41 @@ function gridPositions(n, rows){
 // nombres à trouver et entourer une à une (le lasso reste actif pour chaque nouvelle paire)
 function makePairs(){
   const N = rnd(4,9);
-  const pairCount = rnd(3,4);
-  const total = 12;
-  const nums = [];
-  for(let k=0;k<pairCount;k++){
-    const a = rnd(Math.max(0,N-9), Math.min(9,N));
-    nums.push(a, N-a);
-  }
-  const pairMemberCount = nums.length;
+  const pairCount = Math.min(rnd(3,4), Math.floor(N/2)+1);
+  const cols = 6, rows = 2, total = cols*rows;
+  // cases adjacentes seulement (horizontales ou verticales) : le tracé au doigt
+  // pour une vraie paire reste toujours court et simple
+  const adjCells = [];
+  for(let r=0;r<rows;r++) for(let c=0;c<cols-1;c++) adjCells.push([r*cols+c, r*cols+c+1]);
+  for(let c=0;c<cols;c++) adjCells.push([c, cols+c]);
+  const usedCells = new Set();
+  const chosenCells = [];
+  shuffle(adjCells).forEach(cp=>{
+    if(chosenCells.length>=pairCount || usedCells.has(cp[0]) || usedCells.has(cp[1])) return;
+    usedCells.add(cp[0]); usedCells.add(cp[1]);
+    chosenCells.push(cp);
+  });
+  const grid = Array(total).fill(null);
+  const placed = [];
+  chosenCells.forEach(([c1,c2])=>{
+    // valeurs jamais réutilisées d'une paire à l'autre : évite qu'un même couple
+    // de valeurs (ex. deux fois "1 et 4") ne crée une paire fantôme non adjacente
+    let a, b, guard = 0;
+    do{ a = rnd(Math.max(0,N-9), Math.min(9,N)); b = N-a; guard++; }
+    while(guard<200 && (placed.includes(a) || placed.includes(b)));
+    if(Math.random()<0.5){ grid[c1]=a; grid[c2]=b; } else { grid[c1]=b; grid[c2]=a; }
+    placed.push(a,b);
+  });
   // leurres : des nombres qui ne font PAS N avec aucun autre nombre déjà présent,
   // pour que l'enfant puisse se tromper en les entourant
-  let guard = 0;
-  while(nums.length < total && guard < 300){
-    guard++;
-    const d = rnd(0,9);
-    if(nums.some(x=>x+d===N)) continue;
-    nums.push(d);
+  for(let i=0;i<total;i++){
+    if(grid[i]!==null) continue;
+    let d, guard=0;
+    do{ d = rnd(0,9); guard++; } while(guard<200 && placed.some(x=>x+d===N));
+    grid[i] = d; placed.push(d);
   }
-  const numbers = shuffle(nums);
-  const positions = gridPositions(numbers.length, 2);
-  return { kind:'pairs', target:N, numbers, positions, pairMemberCount,
+  const positions = gridPositions(total, rows);
+  return { kind:'pairs', target:N, numbers:grid, positions, pairMemberCount:chosenCells.length*2,
     instruction:`Entoure toutes les façons de faire ${N} avec deux nombres.`,
     answerLabel:`des paires qui font ${N}`, bonus:false };
 }
