@@ -721,18 +721,27 @@ function shuffleKeepBonusLast(items){
 
 /* ---------- Chapitre 2 : Décomposer, recomposer les nombres jusqu'à 10 ---------- */
 
-// Positions d'une petite grille 3 colonnes dans une case (x0,y0,w,h) de la SVG
-function gridDotPos(i, x0, y0, w, h){
-  const cellW = w/3, cellH = h/3;
-  return { x: x0 + cellW*(i%3) + cellW/2, y: y0 + cellH*Math.floor(i/3) + cellH/2 };
+// Disposition classique de dé (2 en haut, 1 au milieu, 2 en bas), 5 points max par carte
+const DIE_SLOTS = [[0.28,0.25],[0.72,0.25],[0.5,0.5],[0.28,0.75],[0.72,0.75]];
+const DIE_PATTERNS = {0:[],1:[2],2:[0,4],3:[0,2,4],4:[0,1,3,4],5:[0,1,2,3,4]};
+function diePos(i, count, x0, y0, w, h){
+  const slotIdx = (DIE_PATTERNS[count]||[])[i];
+  const [sx,sy] = DIE_SLOTS[slotIdx] || [0.5,0.5];
+  return { x: x0 + w*sx, y: y0 + h*sy };
 }
 
 // Ex. "Dessine les jetons cachés sous le gobelet" / "Dessine les points manquants" —
 // un nombre de départ est déjà visible (jetons ou points), l'enfant dessine le reste
 // pour obtenir le total annoncé ; une légende "total, c'est visible et cachés" évolue en direct.
 function makeDecompose({style}){
-  const total = rnd(4,9);
-  const visible = rnd(1, total-1);
+  let total, visible;
+  if(style==='domino'){
+    total = rnd(4,9);
+    visible = rnd(Math.max(1,total-5), Math.min(5,total-1));
+  } else {
+    total = rnd(4,9);
+    visible = rnd(1, total-1);
+  }
   return { kind:'decompose', style, target:total, start:visible, locked:Array.from({length:visible}), color:pick(PALETTE),
     instruction: style==='cup' ? `Dessine les jetons cachés sous le gobelet pour faire ${total}.` : `Dessine les points manquants pour faire ${total}.`,
     answerLabel:`${total}, c'est ${visible} et ${total-visible}`, bonus:false };
@@ -896,24 +905,25 @@ function renderInteraction(item){
     zone.innerHTML = `
       <div class="decompose-head">
         <div class="target-badge" style="background:${dc()}">${item.target}</div>
-        <div class="equation-caption">c'est <b>${item.start}</b> et <b id="eq-drawn">${session.tapState.length}</b></div>
+        <div class="equation-caption">c'est <b>${item.start}</b> et <b id="eq-drawn">${session.tapState.length||'...'}</b></div>
       </div>
       <div class="draw-wrap"><svg id="decompose-svg" viewBox="0 0 ${VB.w} ${VB.h}" class="draw-svg"></svg></div>
       <div class="interaction-hint">${isCup ? "Touche sous le gobelet pour dessiner un jeton" : "Touche la carte vide pour dessiner un point"}</div>`;
     const svg = document.getElementById('decompose-svg');
     const cupBox = {x:170, y:22, w:106, h:106};
     const cardL = {x:16, y:20, w:120, h:110}, cardR = {x:164, y:20, w:120, h:110};
+    const DOT_INK = '#2f2a44';
     const paint = ()=>{
-      const eq = document.getElementById('eq-drawn'); if(eq) eq.textContent = session.tapState.length;
+      const eq = document.getElementById('eq-drawn'); if(eq) eq.textContent = session.tapState.length||'...';
       if(isCup){
         svg.innerHTML = `<path id="decompose-rect" d="M${cupBox.x+8} ${cupBox.y} h${cupBox.w-16} l-8 ${cupBox.h-14} a6 6 0 0 1-6 6 h-${cupBox.w-44} a6 6 0 0 1-6-6 z" fill="none" stroke="${dc()}" stroke-width="3" stroke-dasharray="6 6"/>`
           + item.locked.map((p,i)=>marbleSVG(30+i*24, 76, 12, item.color)).join('')
           + session.tapState.map(p=>marbleSVG(p.x, p.y, 12, item.color)).join('');
       } else {
-        svg.innerHTML = `<rect x="${cardL.x}" y="${cardL.y}" width="${cardL.w}" height="${cardL.h}" rx="14" fill="none" stroke="#d8cfb8" stroke-width="2.5"/>`
-          + `<rect id="decompose-rect" x="${cardR.x}" y="${cardR.y}" width="${cardR.w}" height="${cardR.h}" rx="14" fill="none" stroke="${dc()}" stroke-width="3" stroke-dasharray="6 6"/>`
-          + item.locked.map((_,i)=>{ const p=gridDotPos(i, cardL.x, cardL.y, cardL.w, cardL.h); return marbleSVG(p.x, p.y, 11, item.color); }).join('')
-          + session.tapState.map((_,i)=>{ const p=gridDotPos(i, cardR.x, cardR.y, cardR.w, cardR.h); return marbleSVG(p.x, p.y, 11, item.color); }).join('');
+        svg.innerHTML = `<rect x="${cardL.x}" y="${cardL.y}" width="${cardL.w}" height="${cardL.h}" rx="10" fill="#fff" stroke="${DOT_INK}" stroke-width="2.5"/>`
+          + `<rect id="decompose-rect" x="${cardR.x}" y="${cardR.y}" width="${cardR.w}" height="${cardR.h}" rx="10" fill="#fff" stroke="${dc()}" stroke-width="3" stroke-dasharray="6 6"/>`
+          + item.locked.map((_,i)=>{ const p=diePos(i, item.start, cardL.x, cardL.y, cardL.w, cardL.h); return marbleSVG(p.x, p.y, 11, DOT_INK); }).join('')
+          + session.tapState.map((_,i)=>{ const p=diePos(i, session.tapState.length, cardR.x, cardR.y, cardR.w, cardR.h); return marbleSVG(p.x, p.y, 11, DOT_INK); }).join('');
       }
     };
     paint();
