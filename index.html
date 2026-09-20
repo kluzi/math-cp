@@ -141,6 +141,17 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .swatch.active{border-color:var(--ink); transform:scale(1.12);}
 .color-obj{position:absolute; transform:translate(-50%,-50%); width:40px; height:40px;}
 .color-obj svg{width:100%; height:100%;}
+.decompose-head{display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px;}
+.equation-caption{font-size:16px; font-weight:800;}
+.equation-caption b{color:var(--dc,var(--ne));}
+.num-tile{position:absolute; transform:translate(-50%,-50%); width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; color:#fff; pointer-events:none; transition:box-shadow .15s ease;}
+.num-tile.used{box-shadow:0 0 0 3px var(--ok) inset; background:#fff !important; color:var(--ok);}
+.fingers-row{background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; margin-bottom:8px; display:flex; flex-direction:column; align-items:center; gap:18px;}
+.hand-box{width:150px;}
+.hand-box svg{width:100%; height:auto;}
+.dots-row{display:flex; gap:10px;}
+.dot-slot{width:32px; height:32px; border-radius:50%; background:#f4efe3; border:2.5px dashed #d8cfb8;}
+.dot-slot.filled{background:var(--dc,var(--ne)); border-style:solid; border-color:var(--dc,var(--ne));}
 
 .pattern-row{display:flex; gap:10px; padding:20px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:18px; flex-wrap:wrap; justify-content:center;}
 .pattern-cell{width:48px; height:48px; border-radius:14px; background:#f4efe3; border:2.5px dashed #d8cfb8;}
@@ -241,7 +252,7 @@ const DOMAINS = [
 const CHAPTERS = {
   NE: [
     { num:1, title:"Construire des collections jusqu'à 10", mission:"J'ai pris le bon nombre d'objets dans une collection.", missionVisual:{type:'collection', count:6}, ready:true, build: buildChapterNE01 },
-    { num:2, title:"Décomposer, recomposer les nombres jusqu'à 10", ready:false },
+    { num:2, title:"Décomposer, recomposer les nombres jusqu'à 10", mission:"J'ai cherché le nombre de jetons cachés sous un gobelet. 6, c'est 4 et 2.", missionVisual:{type:'decompose', a:4, b:2}, ready:true, build: buildChapterNE02 },
     { num:3, title:"Comparer des collections", ready:false },
     { num:6, title:"Dénombrer en groupement par 10", ready:false },
     { num:7, title:"Représenter les nombres jusqu'à 19", ready:false },
@@ -708,6 +719,68 @@ function shuffleKeepBonusLast(items){
   return main.concat(bonus);
 }
 
+/* ---------- Chapitre 2 : Décomposer, recomposer les nombres jusqu'à 10 ---------- */
+
+// Positions d'une petite grille 3 colonnes dans une case (x0,y0,w,h) de la SVG
+function gridDotPos(i, x0, y0, w, h){
+  const cellW = w/3, cellH = h/3;
+  return { x: x0 + cellW*(i%3) + cellW/2, y: y0 + cellH*Math.floor(i/3) + cellH/2 };
+}
+
+// Ex. "Dessine les jetons cachés sous le gobelet" / "Dessine les points manquants" —
+// un nombre de départ est déjà visible (jetons ou points), l'enfant dessine le reste
+// pour obtenir le total annoncé ; une légende "total, c'est visible et cachés" évolue en direct.
+function makeDecompose({style}){
+  const total = rnd(4,9);
+  const visible = rnd(1, total-1);
+  return { kind:'decompose', style, target:total, start:visible, locked:Array.from({length:visible}), color:pick(PALETTE),
+    instruction: style==='cup' ? `Dessine les jetons cachés sous le gobelet pour faire ${total}.` : `Dessine les points manquants pour faire ${total}.`,
+    answerLabel:`${total}, c'est ${visible} et ${total-visible}`, bonus:false };
+}
+
+// Ex. "Entoure toutes les façons de faire N avec deux nombres" — plusieurs paires de
+// nombres à trouver et entourer une à une (le lasso reste actif pour chaque nouvelle paire)
+function makePairs(){
+  const N = rnd(4,9);
+  const pairCount = 3;
+  const nums = [];
+  for(let k=0;k<pairCount;k++){
+    const a = rnd(Math.max(0,N-9), Math.min(9,N));
+    nums.push(a, N-a);
+  }
+  const numbers = shuffle(nums);
+  const positions = scatterFlat(numbers.length);
+  return { kind:'pairs', target:N, numbers, positions,
+    instruction:`Entoure toutes les façons de faire ${N} avec deux nombres.`,
+    answerLabel:`des paires qui font ${N}`, bonus:false };
+}
+
+// Bonus — main qui montre un nombre de doigts, l'enfant complète avec autant de points
+function handSVG(n, color){
+  const fingers = [0,1,2,3,4].map(i=>{
+    const x = 16+i*20, h = (i===0||i===4) ? 38 : 54, y = 68-h;
+    return `<rect x="${x}" y="${y}" width="15" height="${h}" rx="7.5" fill="${i<n?color:'#e7ddc9'}"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 130 108"><rect x="8" y="55" width="114" height="48" rx="22" fill="#f0ead8"/>${fingers}</svg>`;
+}
+function makeFingers(){
+  const n = rnd(2,5);
+  return { kind:'fingers', target:n, color:pick(PALETTE), instruction:`Complète avec autant de points que de doigts levés.`, answerLabel:`${n} points`, bonus:true };
+}
+
+function buildChapterNE02(){
+  const items = [];
+  // Exercice 1 — jetons cachés sous un gobelet
+  for(let i=0;i<4;i++) items.push(makeDecompose({style:'cup'}));
+  // Exercice 2 — points manquants sur une carte
+  for(let i=0;i<3;i++) items.push(makeDecompose({style:'domino'}));
+  // Exercice 3 — entourer les paires qui font le nombre demandé
+  for(let i=0;i<3;i++) items.push(makePairs());
+  // Bonus du jour — compléter selon le nombre de doigts
+  items.push(makeFingers());
+  return shuffleKeepBonusLast(items);
+}
+
 /* ============================================================
    SESSION EN COURS
    ============================================================ */
@@ -739,9 +812,11 @@ function renderSessionItem(){
   const el = document.getElementById('screen-session');
   el.style.setProperty('--dc', d.hex);
 
-  session.tapState = item.kind==='draw' ? []
+  session.tapState = (item.kind==='draw' || item.kind==='decompose') ? []
     : item.kind==='lasso' ? new Set()
     : item.kind==='color' ? Array(item.objects.length).fill(null)
+    : item.kind==='pairs' ? { used:new Set(), pairs:[] }
+    : item.kind==='fingers' ? Array(item.target).fill(false)
     : item.sequence.map((v,i)=> i<item.hiddenFrom ? v : null);
 
   el.innerHTML = `
@@ -815,6 +890,47 @@ function renderInteraction(item){
       if(hit>=0) session.tapState.splice(hit,1); else session.tapState.push({x,y});
       paint();
     });
+  } else if(item.kind==='decompose'){
+    const VB = {w:300, h:148};
+    const isCup = item.style==='cup';
+    zone.innerHTML = `
+      <div class="decompose-head">
+        <div class="target-badge" style="background:${dc()}">${item.target}</div>
+        <div class="equation-caption">c'est <b>${item.start}</b> et <b id="eq-drawn">${session.tapState.length}</b></div>
+      </div>
+      <div class="draw-wrap"><svg id="decompose-svg" viewBox="0 0 ${VB.w} ${VB.h}" class="draw-svg"></svg></div>
+      <div class="interaction-hint">${isCup ? "Touche sous le gobelet pour dessiner un jeton" : "Touche la carte vide pour dessiner un point"}</div>`;
+    const svg = document.getElementById('decompose-svg');
+    const cupBox = {x:170, y:22, w:106, h:106};
+    const cardL = {x:16, y:20, w:120, h:110}, cardR = {x:164, y:20, w:120, h:110};
+    const paint = ()=>{
+      const eq = document.getElementById('eq-drawn'); if(eq) eq.textContent = session.tapState.length;
+      if(isCup){
+        svg.innerHTML = `<path id="decompose-rect" d="M${cupBox.x+8} ${cupBox.y} h${cupBox.w-16} l-8 ${cupBox.h-14} a6 6 0 0 1-6 6 h-${cupBox.w-44} a6 6 0 0 1-6-6 z" fill="none" stroke="${dc()}" stroke-width="3" stroke-dasharray="6 6"/>`
+          + item.locked.map((p,i)=>marbleSVG(30+i*24, 76, 12, item.color)).join('')
+          + session.tapState.map(p=>marbleSVG(p.x, p.y, 12, item.color)).join('');
+      } else {
+        svg.innerHTML = `<rect x="${cardL.x}" y="${cardL.y}" width="${cardL.w}" height="${cardL.h}" rx="14" fill="none" stroke="#d8cfb8" stroke-width="2.5"/>`
+          + `<rect id="decompose-rect" x="${cardR.x}" y="${cardR.y}" width="${cardR.w}" height="${cardR.h}" rx="14" fill="none" stroke="${dc()}" stroke-width="3" stroke-dasharray="6 6"/>`
+          + item.locked.map((_,i)=>{ const p=gridDotPos(i, cardL.x, cardL.y, cardL.w, cardL.h); return marbleSVG(p.x, p.y, 11, item.color); }).join('')
+          + session.tapState.map((_,i)=>{ const p=gridDotPos(i, cardR.x, cardR.y, cardR.w, cardR.h); return marbleSVG(p.x, p.y, 11, item.color); }).join('');
+      }
+    };
+    paint();
+    svg.addEventListener('pointerdown', (e)=>{
+      if(session.answered) return;
+      const rect = svg.getBoundingClientRect();
+      const x = (e.clientX-rect.left)/rect.width*VB.w, y = (e.clientY-rect.top)/rect.height*VB.h;
+      if(isCup){
+        if(x<cupBox.x||x>cupBox.x+cupBox.w||y<cupBox.y||y>cupBox.y+cupBox.h) return;
+        const hit = session.tapState.findIndex(p=>Math.hypot(p.x-x,p.y-y) < 16);
+        if(hit>=0) session.tapState.splice(hit,1); else session.tapState.push({x,y});
+      } else {
+        if(x<cardR.x||x>cardR.x+cardR.w||y<cardR.y||y>cardR.y+cardR.h) return;
+        if(session.tapState.length < item.target-item.start) session.tapState.push(true); else session.tapState.pop();
+      }
+      paint();
+    });
   } else if(item.kind==='lasso'){
     zone.innerHTML = `<div class="scatter-wrap lasso-mode" id="scatter-wrap">
         ${item.objects.map((o,i)=>`<div class="lasso-obj" data-i="${i}" style="left:${item.positions[i].x*100}%; top:${item.positions[i].y*100}%">${shapeSVG(o.shape, o.color)}</div>`).join('')}
@@ -829,7 +945,7 @@ function renderInteraction(item){
     wrap.addEventListener('pointerdown', (e)=>{
       if(session.answered) return;
       drawing = true; path = [ptFromEvent(e)];
-      wrap.setPointerCapture(e.pointerId);
+      try{ wrap.setPointerCapture(e.pointerId); }catch(err){}
     });
     wrap.addEventListener('pointermove', (e)=>{ if(!drawing) return; path.push(ptFromEvent(e)); drawLine(); });
     wrap.addEventListener('pointerup', ()=>{
@@ -904,11 +1020,63 @@ function renderInteraction(item){
         cell.style.background=''; cell.style.borderColor='';
       }
     }));
+  } else if(item.kind==='pairs'){
+    zone.innerHTML = `<div class="scatter-wrap lasso-mode" id="scatter-wrap">
+        ${item.numbers.map((v,i)=>`<div class="num-tile" data-i="${i}" style="left:${item.positions[i].x*100}%; top:${item.positions[i].y*100}%; background:${dc()}">${v}</div>`).join('')}
+        <svg class="lasso-svg" id="lasso-svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="interaction-hint">Entoure une paire, puis recommence pour la suivante</div>`;
+    const wrap = document.getElementById('scatter-wrap');
+    const lsvg = document.getElementById('lasso-svg');
+    let drawing = false, path = [];
+    const strokeColor = dc();
+    const ptFromEvent = (e)=>{ const r = wrap.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width*100, y:(e.clientY-r.top)/r.height*100}; };
+    const drawLine = (c)=>{ lsvg.innerHTML = path.length>1 ? `<polyline points="${path.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${c||strokeColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` : ''; };
+    wrap.addEventListener('pointerdown', (e)=>{
+      if(session.answered) return;
+      drawing = true; path = [ptFromEvent(e)];
+      try{ wrap.setPointerCapture(e.pointerId); }catch(err){}
+    });
+    wrap.addEventListener('pointermove', (e)=>{ if(!drawing) return; path.push(ptFromEvent(e)); drawLine(); });
+    wrap.addEventListener('pointerup', ()=>{
+      if(!drawing || path.length<3) { drawing=false; path=[]; drawLine(); return; }
+      drawing = false;
+      const enclosed = item.numbers.map((v,i)=>i).filter(i=> !session.tapState.used.has(i) && pointInPolygon(item.positions[i].x*100, item.positions[i].y*100, path));
+      const valid = enclosed.length===2 && item.numbers[enclosed[0]]+item.numbers[enclosed[1]]===item.target;
+      if(valid){
+        enclosed.forEach(i=>session.tapState.used.add(i));
+        session.tapState.pairs.push(enclosed);
+        enclosed.forEach(i=>{
+          const el = wrap.querySelector(`.num-tile[data-i="${i}"]`);
+          el.classList.add('used');
+        });
+        path = []; drawLine();
+      } else {
+        drawLine('var(--bad)');
+        setTimeout(()=>{ path=[]; drawLine(); }, 350);
+      }
+    });
+  } else if(item.kind==='fingers'){
+    zone.innerHTML = `
+      <div class="fingers-row">
+        <div class="hand-box">${handSVG(item.target, dc())}</div>
+        <div class="dots-row" id="dots-row">${Array.from({length:item.target},(_,i)=>`<div class="dot-slot" data-i="${i}"></div>`).join('')}</div>
+      </div>`;
+    const paintDots = ()=> zone.querySelectorAll('.dot-slot').forEach((el,i)=> el.classList.toggle('filled', !!session.tapState[i]));
+    paintDots();
+    zone.querySelectorAll('.dot-slot').forEach(el=>el.addEventListener('click', ()=>{
+      if(session.answered) return;
+      const i = parseInt(el.dataset.i);
+      session.tapState[i] = !session.tapState[i];
+      paintDots();
+    }));
   }
 }
 
 function checkItem(item){
-  if(item.kind==='draw') return item.start + session.tapState.length === item.target;
+  if(item.kind==='draw' || item.kind==='decompose') return item.start + session.tapState.length === item.target;
+  if(item.kind==='pairs') return session.tapState.used.size === item.numbers.length;
+  if(item.kind==='fingers') return session.tapState.filter(Boolean).length === item.target;
   if(item.kind==='lasso'){
     let inCat=0, outCat=0;
     session.tapState.forEach(i=>{ item.objects[i].cat===item.targetIdx ? inCat++ : outCat++; });
@@ -932,8 +1100,8 @@ function checkItem(item){
 
 function markAnswered(item, ok){
   const col = ok ? 'var(--ok)' : 'var(--bad)';
-  if(item.kind==='draw'){
-    const rect = document.getElementById('draw-rect');
+  if(item.kind==='draw' || item.kind==='decompose'){
+    const rect = document.getElementById('draw-rect') || document.getElementById('decompose-rect');
     if(rect) rect.setAttribute('stroke', col);
   } else if(item.kind==='lasso'){
     document.querySelectorAll('.lasso-obj.chosen').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; el.style.background='#fff'; });
@@ -942,6 +1110,10 @@ function markAnswered(item, ok){
       const i = parseInt(el.dataset.i);
       if(session.tapState[i]) el.style.boxShadow = `0 0 0 3px ${col} inset`;
     });
+  } else if(item.kind==='pairs'){
+    document.querySelectorAll('.num-tile:not(.used)').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; });
+  } else if(item.kind==='fingers'){
+    document.querySelectorAll('.dot-slot.filled').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; });
   }
 }
 
