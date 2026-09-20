@@ -354,12 +354,20 @@ function goChapter(domainId, num){ nav.screen='chapter'; nav.domainId=domainId; 
    SYNTHÈSE VOCALE
    ============================================================ */
 let frenchVoice = null;
+// Voix féminines connues (iOS/macOS/Windows/Chrome) à privilégier
+const FEMALE_VOICE_NAMES = ['audrey','amelie','amélie','aurelie','aurélie','lea','léa','marie','virginie','celine','céline','flo','chantal','carole','denise','julie','hortense','manon','elise','élise','claire','sandrine','emma','google français','google fran'];
+// Voix masculines connues, jamais utilisées même en repli
+const MALE_VOICE_NAMES = ['thomas','daniel','nicolas','bruno','paul','henri','xavier','jean','pierre','marc','louis','guillaume','antoine','maxime','yannick'];
 function pickVoice(){
   if(!('speechSynthesis' in window)) return;
   const voices = window.speechSynthesis.getVoices();
-  const preferred = ['audrey','amelie','amélie','aurelie','aurélie','lea','léa','marie','virginie','celine','céline','flo'];
-  frenchVoice = voices.find(v=>v.lang && v.lang.toLowerCase().startsWith('fr') && preferred.some(n=>v.name.toLowerCase().includes(n)))
-             || voices.find(v=>v.lang && v.lang.toLowerCase().startsWith('fr'));
+  const fr = voices.filter(v=>v.lang && v.lang.toLowerCase().startsWith('fr'));
+  const frFR = fr.filter(v=>v.lang.toLowerCase()==='fr-fr');
+  const isFemale = v=>FEMALE_VOICE_NAMES.some(n=>v.name.toLowerCase().includes(n));
+  const isMale = v=>MALE_VOICE_NAMES.some(n=>v.name.toLowerCase().includes(n));
+  frenchVoice = frFR.find(isFemale) || fr.find(isFemale)
+             || frFR.find(v=>!isMale(v)) || fr.find(v=>!isMale(v))
+             || frFR[0] || fr[0] || null;
 }
 if('speechSynthesis' in window){
   pickVoice();
@@ -367,11 +375,12 @@ if('speechSynthesis' in window){
 }
 function speak(text){
   if(!('speechSynthesis' in window)) return;
+  if(!frenchVoice) pickVoice();
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'fr-FR';
   if(frenchVoice) u.voice = frenchVoice;
-  u.rate = 0.92; u.pitch = 1.08;
+  u.rate = 0.78; u.pitch = 1.1;
   window.speechSynthesis.speak(u);
 }
 
