@@ -109,6 +109,7 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .mission-card{border-radius:18px; padding:16px; margin-bottom:16px; border:2px dashed rgba(0,0,0,.08);}
 .mission-card b{display:block; font-size:12px; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; color:var(--ink-soft);}
 .mission-card p{font-size:15px; font-weight:700; line-height:1.4;}
+.mission-svg{width:100%; height:auto; max-height:110px; margin-bottom:10px; display:block;}
 .empty-state{text-align:center; padding:40px 20px; color:var(--ink-soft);}
 .empty-state .ic{width:56px; height:56px; margin:0 auto 12px;}
 
@@ -240,7 +241,7 @@ const DOMAINS = [
 // pas encore de contenu -> écran "à venir" tant qu'aucun n'est ajouté.
 const CHAPTERS = {
   NE: [
-    { num:1, title:"Construire des collections jusqu'à 10", mission:"J'ai pris le bon nombre d'objets dans une collection.", ready:true, build: buildChapterNE01 },
+    { num:1, title:"Construire des collections jusqu'à 10", mission:"J'ai pris le bon nombre d'objets dans une collection.", missionVisual:{type:'collection', count:6}, ready:true, build: buildChapterNE01 },
     { num:2, title:"Décomposer, recomposer les nombres jusqu'à 10", ready:false },
     { num:3, title:"Comparer des collections", ready:false },
     { num:6, title:"Dénombrer en groupement par 10", ready:false },
@@ -512,6 +513,62 @@ function shade(hex, amt){
 }
 
 /* ============================================================
+   CHARTE VISUELLE DU "BILAN DE MA MISSION"
+   4 scènes réutilisables selon le type de mission du chapitre.
+   ============================================================ */
+function missionDot(x,y,r,fill){ return `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}"/>`; }
+function collectionLayout(n){
+  const cols = Math.min(5,n), startX=75, startY=28, gapX=26, gapY=26;
+  return Array.from({length:n}, (_,i)=>({ x:startX+(i%cols)*gapX, y:startY+Math.floor(i/cols)*gapY }));
+}
+function missionVisualSVG(v, d){
+  const c1 = d.hex, c2 = shade(d.hex,-40);
+  if(v.type==='collection'){
+    const dots = collectionLayout(v.count).map((p,i)=>missionDot(p.x,p.y,9,i%2?c2:c1)).join('');
+    return `<svg class="mission-svg" viewBox="0 0 260 90">
+      <rect x="55" y="8" width="150" height="74" rx="16" fill="none" stroke="${c1}" stroke-width="2.5" stroke-dasharray="5 5"/>
+      ${dots}
+      <circle cx="228" cy="45" r="20" fill="${c1}"/>
+      <text x="228" y="51" text-anchor="middle" font-size="18" font-weight="800" fill="#fff">${v.count}</text>
+    </svg>`;
+  }
+  if(v.type==='decompose'){
+    const visible = Array.from({length:v.a}, (_,i)=>missionDot(58+i*20,55,8,c1)).join('');
+    const hidden = Array.from({length:v.b}, (_,i)=>missionDot(188+i*20,45,8,c2)).join('');
+    return `<svg class="mission-svg" viewBox="0 0 260 90">
+      <path d="M40 20 h50 v40 a25 25 0 0 1 -50 0 z" fill="none" stroke="${c1}" stroke-width="2.5"/>
+      ${visible}
+      <text x="150" y="52" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ink-soft)">+</text>
+      ${hidden}
+    </svg>`;
+  }
+  if(v.type==='compare'){
+    const sym = v.a<v.b?'&lt;':v.a>v.b?'&gt;':'=';
+    const left = collectionLayout(v.a).map((p,i)=>missionDot(p.x-25,p.y,7,c1)).join('');
+    const right = collectionLayout(v.b).map((p,i)=>missionDot(p.x+95,p.y,7,c2)).join('');
+    return `<svg class="mission-svg" viewBox="0 0 260 90">
+      <rect x="10" y="8" width="90" height="74" rx="14" fill="none" stroke="${c1}" stroke-width="2.5"/>
+      ${left}
+      <text x="130" y="52" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ink-soft)">${sym}</text>
+      <rect x="160" y="8" width="90" height="74" rx="14" fill="none" stroke="${c2}" stroke-width="2.5"/>
+      ${right}
+    </svg>`;
+  }
+  if(v.type==='pattern'){
+    const cols = v.colors || [c1,c2];
+    const cells = Array.from({length:5}, (_,i)=> i<4
+      ? `<rect x="${20+i*38}" y="30" width="30" height="30" rx="8" fill="${cols[i%2]}"/>`
+      : `<rect x="${20+i*38}" y="30" width="30" height="30" rx="8" fill="none" stroke="#B4B2A9" stroke-width="2.5" stroke-dasharray="4 4"/>`
+    ).join('');
+    return `<svg class="mission-svg" viewBox="0 0 260 90">
+      ${cells}
+      <path d="M215 45 h20 m-8 -8 l8 8 l-8 8" fill="none" stroke="var(--ink-soft)" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>`;
+  }
+  return '';
+}
+
+/* ============================================================
    ÉCRAN CHAPITRE
    ============================================================ */
 function renderChapter(domainId, num){
@@ -530,6 +587,7 @@ function renderChapter(domainId, num){
     </div>
     <div class="mission-card" style="background:${d.bg}; border-color:${d.hex}55">
       <b>Bilan de ma mission</b>
+      ${c.missionVisual ? missionVisualSVG(c.missionVisual, d) : ''}
       <p>${c.mission}</p>
     </div>
     ${prog?`<div class="card" style="text-align:center"><div class="stars-mini" style="color:var(--gold)">${'★'.repeat(prog.bestStars)}${'☆'.repeat(3-prog.bestStars)}</div><div class="chapter-meta" style="margin-top:6px">Meilleur score : ${prog.bestPct}%</div></div>`:''}
