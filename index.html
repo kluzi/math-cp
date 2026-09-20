@@ -955,8 +955,9 @@ function renderInteraction(item){
     const paint = ()=>{
       const eq = document.getElementById('eq-drawn'); if(eq) eq.textContent = session.tapState.length||'...';
       if(isCup){
+        const lCols = Math.min(4, item.locked.length) || 1;
         svg.innerHTML = `<path id="decompose-rect" d="M${cupBox.x+8} ${cupBox.y} h${cupBox.w-16} l-8 ${cupBox.h-14} a6 6 0 0 1-6 6 h-${cupBox.w-44} a6 6 0 0 1-6-6 z" fill="none" stroke="${dc()}" stroke-width="3" stroke-dasharray="6 6"/>`
-          + item.locked.map((p,i)=>marbleSVG(30+i*24, 76, 12, item.color)).join('')
+          + item.locked.map((p,i)=>marbleSVG(24+(i%lCols)*34, 42+Math.floor(i/lCols)*36, 12, item.color)).join('')
           + session.tapState.map(p=>marbleSVG(p.x, p.y, 12, item.color)).join('');
       } else {
         svg.innerHTML = `<rect x="${cardL.x}" y="${cardL.y}" width="${cardL.w}" height="${cardL.h}" rx="10" fill="#fff" stroke="${DOT_INK}" stroke-width="2.5"/>`
