@@ -555,10 +555,11 @@ function missionVisualSVG(v, d){
     </svg>`;
   }
   if(v.type==='decompose'){
-    const visible = Array.from({length:v.a}, (_,i)=>missionDot(58+i*20,55,8,c1)).join('');
+    const cols = Math.min(3, v.a);
+    const visible = Array.from({length:v.a}, (_,i)=>missionDot(44+(i%cols)*20, 38+Math.floor(i/cols)*22, 6.5, c1)).join('');
     const hidden = Array.from({length:v.b}, (_,i)=>missionDot(188+i*20,45,8,c2)).join('');
     return `<svg class="mission-svg" viewBox="0 0 260 90">
-      <path d="M40 20 h50 v40 a25 25 0 0 1 -50 0 z" fill="none" stroke="${c1}" stroke-width="2.5"/>
+      <path d="M20 18 h76 v44 a38 22 0 0 1 -76 0 z" fill="none" stroke="${c1}" stroke-width="2.5"/>
       ${visible}
       <text x="150" y="52" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ink-soft)">+</text>
       ${hidden}
