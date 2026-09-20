@@ -149,9 +149,9 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .fingers-row{background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; margin-bottom:8px; display:flex; flex-direction:column; align-items:center; gap:18px;}
 .hand-box{width:150px;}
 .hand-box svg{width:100%; height:auto;}
-.dots-row{display:flex; gap:10px;}
-.dot-slot{width:32px; height:32px; border-radius:50%; background:#f4efe3; border:2.5px dashed #d8cfb8;}
-.dot-slot.filled{background:var(--dc,var(--ne)); border-style:solid; border-color:var(--dc,var(--ne));}
+.digit-picker{display:flex; gap:10px;}
+.digit-btn{width:42px; height:42px; border-radius:12px; background:#f4efe3; border:2.5px solid #d8cfb8; font-weight:800; font-size:18px; color:var(--ink-soft); transition:box-shadow .15s ease;}
+.digit-btn.active{background:var(--dc,var(--ne)); border-color:var(--dc,var(--ne)); color:#fff;}
 
 .pattern-row{display:flex; gap:10px; padding:20px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:18px; flex-wrap:wrap; justify-content:center;}
 .pattern-cell{width:48px; height:48px; border-radius:14px; background:#f4efe3; border:2.5px dashed #d8cfb8;}
@@ -747,6 +747,17 @@ function makeDecompose({style}){
     answerLabel:`${total}, c'est ${visible} et ${total-visible}`, bonus:false };
 }
 
+// Positions en grille (ex. 2 lignes) dans la zone [0..1], comme dans le manuel
+function gridPositions(n, rows){
+  rows = rows || 2;
+  const cols = Math.ceil(n/rows);
+  const pts = [];
+  for(let i=0;i<n;i++){
+    const r = Math.floor(i/cols), c = i%cols;
+    pts.push({ x: 0.1 + (c+0.5)/cols*0.8, y: 0.18 + (r+0.5)/rows*0.64 });
+  }
+  return pts;
+}
 // Ex. "Entoure toutes les façons de faire N avec deux nombres" — plusieurs paires de
 // nombres à trouver et entourer une à une (le lasso reste actif pour chaque nouvelle paire)
 function makePairs(){
@@ -758,13 +769,14 @@ function makePairs(){
     nums.push(a, N-a);
   }
   const numbers = shuffle(nums);
-  const positions = scatterFlat(numbers.length);
+  const positions = gridPositions(numbers.length, 2);
   return { kind:'pairs', target:N, numbers, positions,
     instruction:`Entoure toutes les façons de faire ${N} avec deux nombres.`,
     answerLabel:`des paires qui font ${N}`, bonus:false };
 }
 
-// Bonus — main qui montre un nombre de doigts, l'enfant complète avec autant de points
+// Bonus — main qui montre un nombre de doigts ; l'enfant complète une carte domino
+// avec autant de points, puis choisit le chiffre correspondant
 function handSVG(n, color){
   const fingers = [0,1,2,3,4].map(i=>{
     const x = 16+i*20, h = (i===0||i===4) ? 38 : 54, y = 68-h;
@@ -774,7 +786,7 @@ function handSVG(n, color){
 }
 function makeFingers(){
   const n = rnd(2,5);
-  return { kind:'fingers', target:n, color:pick(PALETTE), instruction:`Complète avec autant de points que de doigts levés.`, answerLabel:`${n} points`, bonus:true };
+  return { kind:'fingers', target:n, instruction:`Complète avec autant de points que de doigts levés, puis choisis le chiffre.`, answerLabel:`${n} points et le chiffre ${n}`, bonus:true };
 }
 
 function buildChapterNE02(){
@@ -825,7 +837,7 @@ function renderSessionItem(){
     : item.kind==='lasso' ? new Set()
     : item.kind==='color' ? Array(item.objects.length).fill(null)
     : item.kind==='pairs' ? { used:new Set(), pairs:[] }
-    : item.kind==='fingers' ? Array(item.target).fill(false)
+    : item.kind==='fingers' ? { dots:[], digit:null }
     : item.sequence.map((v,i)=> i<item.hiddenFrom ? v : null);
 
   el.innerHTML = `
@@ -937,7 +949,10 @@ function renderInteraction(item){
         if(hit>=0) session.tapState.splice(hit,1); else session.tapState.push({x,y});
       } else {
         if(x<cardR.x||x>cardR.x+cardR.w||y<cardR.y||y>cardR.y+cardR.h) return;
-        if(session.tapState.length < item.target-item.start) session.tapState.push(true); else session.tapState.pop();
+        const dotPositions = session.tapState.map((_,i)=>diePos(i, session.tapState.length, cardR.x, cardR.y, cardR.w, cardR.h));
+        const hit = dotPositions.findIndex(p=>Math.hypot(p.x-x,p.y-y) < 18);
+        if(hit>=0) session.tapState.splice(hit,1);
+        else if(session.tapState.length<5) session.tapState.push(true);
       }
       paint();
     });
@@ -1067,18 +1082,37 @@ function renderInteraction(item){
       }
     });
   } else if(item.kind==='fingers'){
+    const VB = {w:220, h:130};
+    const card = {x:12, y:10, w:VB.w-24, h:VB.h-20};
+    const DOT_INK = '#2f2a44';
     zone.innerHTML = `
       <div class="fingers-row">
         <div class="hand-box">${handSVG(item.target, dc())}</div>
-        <div class="dots-row" id="dots-row">${Array.from({length:item.target},(_,i)=>`<div class="dot-slot" data-i="${i}"></div>`).join('')}</div>
+        <div class="draw-wrap" style="padding:8px;"><svg id="fingers-svg" viewBox="0 0 ${VB.w} ${VB.h}" class="draw-svg" style="width:220px;"></svg></div>
+        <div class="digit-picker">${[1,2,3,4,5].map(n=>`<button class="digit-btn" data-n="${n}">${n}</button>`).join('')}</div>
       </div>`;
-    const paintDots = ()=> zone.querySelectorAll('.dot-slot').forEach((el,i)=> el.classList.toggle('filled', !!session.tapState[i]));
-    paintDots();
-    zone.querySelectorAll('.dot-slot').forEach(el=>el.addEventListener('click', ()=>{
+    const svg = document.getElementById('fingers-svg');
+    const paint = ()=>{
+      svg.innerHTML = `<rect id="decompose-rect" x="${card.x}" y="${card.y}" width="${card.w}" height="${card.h}" rx="12" fill="#fff" stroke="${dc()}" stroke-width="3" stroke-dasharray="6 6"/>`
+        + session.tapState.dots.map((_,i)=>{ const p=diePos(i, session.tapState.dots.length, card.x, card.y, card.w, card.h); return marbleSVG(p.x, p.y, 13, DOT_INK); }).join('');
+    };
+    paint();
+    svg.addEventListener('pointerdown', (e)=>{
       if(session.answered) return;
-      const i = parseInt(el.dataset.i);
-      session.tapState[i] = !session.tapState[i];
-      paintDots();
+      const rect = svg.getBoundingClientRect();
+      const x = (e.clientX-rect.left)/rect.width*VB.w, y = (e.clientY-rect.top)/rect.height*VB.h;
+      if(x<card.x||x>card.x+card.w||y<card.y||y>card.y+card.h) return;
+      const dotPositions = session.tapState.dots.map((_,i)=>diePos(i, session.tapState.dots.length, card.x, card.y, card.w, card.h));
+      const hit = dotPositions.findIndex(p=>Math.hypot(p.x-x,p.y-y) < 18);
+      if(hit>=0) session.tapState.dots.splice(hit,1);
+      else if(session.tapState.dots.length<5) session.tapState.dots.push(true);
+      paint();
+    });
+    zone.querySelectorAll('.digit-btn').forEach(btn=>btn.addEventListener('click', ()=>{
+      if(session.answered) return;
+      zone.querySelectorAll('.digit-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      session.tapState.digit = parseInt(btn.dataset.n);
     }));
   }
 }
@@ -1086,7 +1120,7 @@ function renderInteraction(item){
 function checkItem(item){
   if(item.kind==='draw' || item.kind==='decompose') return item.start + session.tapState.length === item.target;
   if(item.kind==='pairs') return session.tapState.used.size === item.numbers.length;
-  if(item.kind==='fingers') return session.tapState.filter(Boolean).length === item.target;
+  if(item.kind==='fingers') return session.tapState.dots.length === item.target && session.tapState.digit === item.target;
   if(item.kind==='lasso'){
     let inCat=0, outCat=0;
     session.tapState.forEach(i=>{ item.objects[i].cat===item.targetIdx ? inCat++ : outCat++; });
@@ -1123,7 +1157,10 @@ function markAnswered(item, ok){
   } else if(item.kind==='pairs'){
     document.querySelectorAll('.num-tile:not(.used)').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; });
   } else if(item.kind==='fingers'){
-    document.querySelectorAll('.dot-slot.filled').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; });
+    const rect = document.getElementById('decompose-rect');
+    if(rect) rect.setAttribute('stroke', col);
+    const activeBtn = document.querySelector('.digit-btn.active');
+    if(activeBtn) activeBtn.style.boxShadow = `0 0 0 3px ${col} inset`;
   }
 }
 
