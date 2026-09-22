@@ -160,6 +160,23 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .pattern-cell{width:48px; height:48px; border-radius:14px; background:#f4efe3; border:2.5px dashed #d8cfb8;}
 .pattern-cell.filled{border-style:solid;}
 
+.compare-row{display:flex; gap:10px; margin-bottom:10px;}
+.compare-card{position:relative; flex:1; min-width:0; aspect-ratio:4/3; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; transition:box-shadow .15s ease; cursor:pointer;}
+.compare-card.selected{box-shadow:0 0 0 3px var(--dc,var(--ne)) inset;}
+.compare-obj{position:absolute; transform:translate(-50%,-50%); width:26px; height:26px; pointer-events:none;}
+.compare-obj svg{width:100%; height:100%;}
+.rod-row{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:3px; flex-wrap:wrap; padding:8px; pointer-events:none;}
+.rod-unit{width:20px; height:20px; flex:0 0 auto;}
+.rod-unit svg{width:100%; height:100%;}
+
+.crossout-row{display:flex; gap:14px; margin-bottom:6px;}
+.crossout-col{flex:1; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:14px; display:grid; grid-template-columns:repeat(2,1fr); gap:8px; justify-items:center; align-content:start;}
+.crossout-item{position:relative; width:32px; height:32px; transition:opacity .15s ease;}
+.crossout-slot-empty{width:32px; height:32px;}
+.crossout-item svg{width:100%; height:100%;}
+.crossout-item.crossed{opacity:.4;}
+.crossout-item.crossed::after{content:''; position:absolute; left:2px; right:2px; top:50%; height:3px; margin-top:-1.5px; background:var(--bad); border-radius:2px; transform:rotate(-18deg);}
+
 .feedback-box{border-radius:18px; padding:16px; margin-bottom:16px; display:flex; align-items:center; gap:12px;}
 .feedback-box.ok{background:var(--rp-bg); color:var(--rp-dark);}
 .feedback-box.bad{background:#fdeaee; color:var(--bad);}
@@ -256,7 +273,7 @@ const CHAPTERS = {
   NE: [
     { num:1, title:"Construire des collections jusqu'à 10", mission:"J'ai pris le bon nombre d'objets dans une collection.", missionVisual:{type:'collection', count:6}, ready:true, build: buildChapterNE01 },
     { num:2, title:"Décomposer, recomposer les nombres jusqu'à 10", mission:"J'ai cherché le nombre de jetons cachés sous un gobelet. 6, c'est 4 et 2.", missionVisual:{type:'decompose', a:4, b:2}, ready:true, build: buildChapterNE02 },
-    { num:3, title:"Comparer des collections", ready:false },
+    { num:3, title:"Comparer des collections", mission:"J'ai comparé des collections sans les compter, en trouvant la plus grande et la plus petite.", missionVisual:{type:'compare', a:5, b:6}, ready:true, build: buildChapterNE03 },
     { num:6, title:"Dénombrer en groupement par 10", ready:false },
     { num:7, title:"Représenter les nombres jusqu'à 19", ready:false },
     { num:8, title:"Représenter les nombres jusqu'à 59", ready:false },
@@ -546,6 +563,23 @@ function collectionLayout(n){
   const cols = Math.min(5,n), startX=75, startY=28, gapX=26, gapY=26;
   return Array.from({length:n}, (_,i)=>({ x:startX+(i%cols)*gapX, y:startY+Math.floor(i/cols)*gapY }));
 }
+// Points centrés dans un cadre étroit (utilisé par le visuel 'compare', deux cadres
+// de 90px côte à côte) : contrairement à collectionLayout (pensé pour un cadre de
+// 150px), la grille s'adapte à la largeur/hauteur disponibles pour ne jamais déborder.
+function boxDotLayout(n, boxX, boxY, boxW, boxH){
+  const cols = Math.min(4, n), rows = Math.ceil(n/cols);
+  const padX = 16, padY = 16;
+  const usableW = boxW - padX*2, usableH = boxH - padY*2;
+  const gapX = cols>1 ? usableW/(cols-1) : 0;
+  const gapY = rows>1 ? usableH/(rows-1) : 0;
+  return Array.from({length:n}, (_,i)=>{
+    const r = Math.floor(i/cols), c = i%cols;
+    const rowCount = Math.min(cols, n - r*cols);
+    const rowW = rowCount>1 ? gapX*(rowCount-1) : 0;
+    const rowStartX = boxX + padX + (usableW-rowW)/2;
+    return { x: rowStartX + c*gapX, y: boxY + padY + r*gapY };
+  });
+}
 function missionVisualSVG(v, d){
   const c1 = d.hex, c2 = shade(d.hex,-40);
   if(v.type==='collection'){
@@ -570,8 +604,8 @@ function missionVisualSVG(v, d){
   }
   if(v.type==='compare'){
     const sym = v.a<v.b?'&lt;':v.a>v.b?'&gt;':'=';
-    const left = collectionLayout(v.a).map((p,i)=>missionDot(p.x-25,p.y,7,c1)).join('');
-    const right = collectionLayout(v.b).map((p,i)=>missionDot(p.x+95,p.y,7,c2)).join('');
+    const left = boxDotLayout(v.a, 10, 8, 90, 74).map(p=>missionDot(p.x,p.y,7,c1)).join('');
+    const right = boxDotLayout(v.b, 160, 8, 90, 74).map(p=>missionDot(p.x,p.y,7,c2)).join('');
     return `<svg class="mission-svg" viewBox="0 0 260 90">
       <rect x="10" y="8" width="90" height="74" rx="14" fill="none" stroke="${c1}" stroke-width="2.5"/>
       ${left}
@@ -700,6 +734,101 @@ function makePattern(){
   const length = 8, hidden = 3;
   const seq = Array.from({length}, (_,i)=> i%2===0? c0 : c1);
   return { kind:'pattern', colors:[c0,c1], sequence:seq, hiddenFrom:length-hidden, instruction:"Fais glisser la bonne couleur sur chaque case vide.", bonus:true };
+}
+
+/* ---------- Chapitre 3 : Comparer des collections ---------- */
+
+// Tire n valeurs distinctes dans [min,max] regroupées autour d'un même noyau (écarts
+// petits, comme "6 pommes / 5 pommes" dans le manuel) : on chaîne chaque nouvelle
+// valeur à partir d'une valeur déjà tirée avec un petit écart, plutôt que de tirer
+// n valeurs au hasard dans tout l'intervalle (ce qui donnerait des écarts trop francs)
+function closeCounts(n, min, max){
+  const vals = [rnd(min, max)];
+  let guard = 0;
+  while(vals.length < n && guard < 300){
+    guard++;
+    const from = pick(vals);
+    const gap = pick([1,1,1,2,2,3]);
+    const next = from + pick([-1,1])*gap;
+    if(next>=min && next<=max && !vals.includes(next)) vals.push(next);
+  }
+  while(vals.length < n){
+    const next = rnd(min, max);
+    if(!vals.includes(next)) vals.push(next);
+  }
+  return vals.sort((a,b)=>a-b);
+}
+
+// Ex. "Touche la plus grande/petite collection" — même forme partout, seul le nombre
+// change, dans des cartes séparées ; l'enfant touche la carte (pas les objets un par
+// un) pour désigner sa réponse. style 'scatter' = tas en vrac, 'rows' = objets alignés
+// en train (comme les réglettes/trains de cubes du manuel), pour comparer par la
+// longueur sans avoir à compter.
+function makeCompare({mode, style, groupCount}){
+  groupCount = groupCount || 2;
+  const shape = pick(SHAPES), color = pick(PALETTE);
+  const counts = closeCounts(groupCount, 3, 10);
+  const targetCount = mode==='biggest' ? counts[counts.length-1] : counts[0];
+  const groups = shuffle(counts).map(count=>({
+    count, shape, color,
+    positions: style==='scatter' ? scatterFlat(count) : null,
+  }));
+  const targetIdx = groups.findIndex(g=>g.count===targetCount);
+  const label = mode==='biggest' ? 'grande' : 'petite';
+  return { kind:'compare', mode, style, groups, targetIdx,
+    instruction:`Touche la plus ${label} collection.`,
+    answerLabel:`la collection de ${targetCount} ${shapeNoun(shape,targetCount)}`, bonus:false };
+}
+
+// Bonus — même mécanique avec 3 collections à comparer au lieu de 2
+function makeCompareBonus(){
+  const item = makeCompare({ mode: pick(['biggest','smallest']), style: pick(['scatter','rows']), groupCount:3 });
+  item.bonus = true;
+  return item;
+}
+
+// Ex. "Barre les objets en trop pour qu'il y en ait autant de chaque côté" — deux
+// colonnes du même objet sur une grille à 2 colonnes. Le côté excédentaire (celui où
+// l'enfant doit barrer) reste un bloc plein et compact, sans trou, pour servir de
+// repère clair ; c'est le côté de référence (déjà au bon compte) qui peut avoir des
+// cases vides dispersées dans la grille, pas seulement à la toute fin.
+function makeCrossout(){
+  const shape = pick(SHAPES), color = pick(PALETTE);
+  const small = rnd(3,6), diff = rnd(2,4);
+  const big = small + diff;
+  const excessLeft = Math.random()<0.5;
+  const leftCount = excessLeft ? big : small;
+  const rightCount = excessLeft ? small : big;
+  const rows = Math.ceil(big/2), slotCount = rows*2;
+  const fullSlots = Array.from({length:big}, (_,i)=>i);
+  const scatteredSlots = shuffle(Array.from({length:slotCount}, (_,i)=>i)).slice(0,small).sort((a,b)=>a-b);
+  return { kind:'crossout', shape, color, leftCount, rightCount, rows, slotCount,
+    leftSlots: excessLeft ? fullSlots : scatteredSlots,
+    rightSlots: excessLeft ? scatteredSlots : fullSlots,
+    diff, excessSide: excessLeft ? 'left' : 'right',
+    instruction:`Barre les objets en trop pour qu'il y en ait autant de chaque côté.`,
+    answerLabel:`barrer ${diff} ${shapeNoun(shape,diff)}`, bonus:false };
+}
+
+function buildChapterNE03(){
+  const items = [];
+  // Exercice "plus grande collection" — mélange de tas en vrac et de trains alignés
+  items.push(makeCompare({mode:'biggest', style:'scatter'}));
+  items.push(makeCompare({mode:'biggest', style:'scatter'}));
+  items.push(makeCompare({mode:'biggest', style:'scatter'}));
+  items.push(makeCompare({mode:'biggest', style:'rows'}));
+  items.push(makeCompare({mode:'biggest', style:'rows'}));
+  // Exercice "plus petite collection" — idem
+  items.push(makeCompare({mode:'smallest', style:'scatter'}));
+  items.push(makeCompare({mode:'smallest', style:'scatter'}));
+  items.push(makeCompare({mode:'smallest', style:'scatter'}));
+  items.push(makeCompare({mode:'smallest', style:'rows'}));
+  items.push(makeCompare({mode:'smallest', style:'rows'}));
+  // Exercice "barre les objets en trop pour égaliser"
+  for(let i=0;i<3;i++) items.push(makeCrossout());
+  // Bonus du jour — comparer 3 collections au lieu de 2
+  items.push(makeCompareBonus());
+  return shuffleKeepBonusLast(items);
 }
 
 function buildChapterNE01(){
@@ -868,6 +997,8 @@ function renderSessionItem(){
     : item.kind==='color' ? Array(item.objects.length).fill(null)
     : item.kind==='pairs' ? { used:new Set(), pairs:[] }
     : item.kind==='fingers' ? { dots:[], digit:null }
+    : item.kind==='compare' ? null
+    : item.kind==='crossout' ? { left:new Set(), right:new Set() }
     : item.sequence.map((v,i)=> i<item.hiddenFrom ? v : null);
 
   el.innerHTML = `
@@ -1145,6 +1276,47 @@ function renderInteraction(item){
       btn.classList.add('active');
       session.tapState.digit = parseInt(btn.dataset.n);
     }));
+  } else if(item.kind==='compare'){
+    zone.innerHTML = `<div class="compare-row" id="compare-row">${
+      item.groups.map((g,i)=>`
+        <div class="compare-card" data-i="${i}">${
+          item.style==='scatter'
+            ? g.positions.map(p=>`<div class="compare-obj" style="left:${p.x*100}%; top:${p.y*100}%">${shapeSVG(g.shape,g.color)}</div>`).join('')
+            : `<div class="rod-row">${Array.from({length:g.count}).map(()=>`<div class="rod-unit">${shapeSVG(g.shape,g.color)}</div>`).join('')}</div>`
+        }</div>`).join('')
+    }</div>`;
+    zone.querySelectorAll('.compare-card').forEach(card=>card.addEventListener('click', ()=>{
+      if(session.answered) return;
+      session.tapState = parseInt(card.dataset.i);
+      zone.querySelectorAll('.compare-card').forEach(c=>c.classList.toggle('selected', c===card));
+    }));
+  } else if(item.kind==='crossout'){
+    const renderCol = (side, slots)=>{
+      const set = side==='left' ? session.tapState.left : session.tapState.right;
+      let objIdx = 0;
+      const cells = [];
+      for(let slot=0; slot<item.slotCount; slot++){
+        if(slots.includes(slot)){
+          const i = objIdx++;
+          cells.push(`<div class="crossout-item ${set.has(i)?'crossed':''}" data-side="${side}" data-i="${i}">${shapeSVG(item.shape,item.color)}</div>`);
+        } else {
+          cells.push(`<div class="crossout-slot-empty"></div>`);
+        }
+      }
+      return cells.join('');
+    };
+    zone.innerHTML = `<div class="crossout-row" id="crossout-row">
+        <div class="crossout-col">${renderCol('left', item.leftSlots)}</div>
+        <div class="crossout-col">${renderCol('right', item.rightSlots)}</div>
+      </div>
+      <div class="interaction-hint">Touche les objets en trop pour les barrer</div>`;
+    zone.querySelectorAll('.crossout-item').forEach(el=>el.addEventListener('click', ()=>{
+      if(session.answered) return;
+      const side = el.dataset.side, i = parseInt(el.dataset.i);
+      const set = side==='left' ? session.tapState.left : session.tapState.right;
+      if(set.has(i)) set.delete(i); else set.add(i);
+      el.classList.toggle('crossed');
+    }));
   }
 }
 
@@ -1152,6 +1324,12 @@ function checkItem(item){
   if(item.kind==='draw' || item.kind==='decompose') return item.start + session.tapState.length === item.target;
   if(item.kind==='pairs') return session.tapState.used.size === item.pairMemberCount;
   if(item.kind==='fingers') return session.tapState.dots.length === item.target && session.tapState.digit === item.target;
+  if(item.kind==='compare') return session.tapState === item.targetIdx;
+  if(item.kind==='crossout'){
+    const excessSet = item.excessSide==='left' ? session.tapState.left : session.tapState.right;
+    const otherSet = item.excessSide==='left' ? session.tapState.right : session.tapState.left;
+    return excessSet.size===item.diff && otherSet.size===0;
+  }
   if(item.kind==='lasso'){
     let inCat=0, outCat=0;
     session.tapState.forEach(i=>{ item.objects[i].cat===item.targetIdx ? inCat++ : outCat++; });
@@ -1192,6 +1370,11 @@ function markAnswered(item, ok){
     if(rect) rect.setAttribute('stroke', col);
     const activeBtn = document.querySelector('.digit-btn.active');
     if(activeBtn) activeBtn.style.boxShadow = `0 0 0 3px ${col} inset`;
+  } else if(item.kind==='compare'){
+    const card = document.querySelector(`.compare-card[data-i="${session.tapState}"]`);
+    if(card) card.style.boxShadow = `0 0 0 3px ${col} inset`;
+  } else if(item.kind==='crossout'){
+    document.querySelectorAll('.crossout-item.crossed').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; });
   }
 }
 
