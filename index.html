@@ -475,15 +475,52 @@ if('speechSynthesis' in window){
   pickVoice();
   window.speechSynthesis.onvoiceschanged = pickVoice;
 }
-function speak(text){
+// Voix ElevenLabs pré-générées (audio/manifest.json, produit par tools/generer_voix.py).
+// Une phrase sans clip, ou un manifeste introuvable, retombe sur la synthèse du navigateur.
+let VOICE_CLIPS = {};
+const clipPlayer = new Audio();
+fetch('audio/manifest.json').then(r=>r.ok?r.json():null).then(m=>{ if(m && m.clips) VOICE_CLIPS = m.clips; }).catch(()=>{});
+// Doit rester identique à speech_key() dans tools/generer_voix.py
+function speechKey(text){ return String(text).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(); }
+// Doit rester identique à speech_units() dans tools/generer_voix.py :
+// les énoncés « Colorie … » sont enregistrés par morceaux et enchaînés.
+function speechUnits(key){
+  const m = key.match(/^Colorie (.+)\.$/);
+  if(!m) return [key];
+  const parts = m[1].split(/, | et /);
+  if(parts.length<2) return [key];
+  return ['Colorie'].concat(parts.map((p,i)=> i===parts.length-1 ? 'et '+p+'.' : p+','));
+}
+let speechToken = 0;
+function stopSpeech(){
+  speechToken++;
+  clipPlayer.onended = null;
+  clipPlayer.pause();
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+function speakSynth(text){
   if(!('speechSynthesis' in window)) return;
   if(!frenchVoice) pickVoice();
-  window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'fr-FR';
   if(frenchVoice) u.voice = frenchVoice;
   u.rate = 1; u.pitch = 1;
   window.speechSynthesis.speak(u);
+}
+function speak(text){
+  stopSpeech();
+  const token = speechToken;
+  const files = speechUnits(speechKey(text)).map(u=>VOICE_CLIPS[u]);
+  if(!files.every(Boolean)){ speakSynth(text); return; }
+  let i = 0;
+  const next = ()=>{
+    if(token!==speechToken || i>=files.length) return;
+    const first = i===0;
+    clipPlayer.src = 'audio/' + files[i++];
+    clipPlayer.play().catch(()=>{ if(first && token===speechToken) speakSynth(text); });
+  };
+  clipPlayer.onended = next;
+  next();
 }
 
 /* ============================================================
@@ -2341,7 +2378,7 @@ function nextItem(){
   else finishSession();
 }
 function exitSession(){
-  if(confirm("Quitter l'exercice en cours ?")) { window.speechSynthesis && window.speechSynthesis.cancel(); goChapter(session.domainId, session.chapter.num); }
+  if(confirm("Quitter l'exercice en cours ?")) { stopSpeech(); goChapter(session.domainId, session.chapter.num); }
 }
 
 function finishSession(){
