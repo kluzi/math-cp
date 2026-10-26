@@ -177,6 +177,33 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .crossout-item.crossed{opacity:.4;}
 .crossout-item.crossed::after{content:''; position:absolute; left:2px; right:2px; top:50%; height:3px; margin-top:-1.5px; background:var(--bad); border-radius:2px; transform:rotate(-18deg);}
 
+.numline-row{display:flex; gap:8px; padding:16px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:14px; flex-wrap:wrap; justify-content:center;}
+.numline-cell{position:relative; min-width:40px; height:40px; padding:0 6px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; transition:box-shadow .15s ease;}
+.numline-cell.fixed{background:#f4efe3; color:var(--ink-soft);}
+.numline-cell.blank{background:#fff; border:2.5px dashed #d8cfb8; color:var(--dc,var(--ne)); cursor:pointer;}
+.numline-cell.blank.filled{border-style:solid;}
+.numline-cell.blank.active{border-color:var(--dc,var(--ne)); background:#fff7f0;}
+.numline-cell.tile{background:#f4efe3; border:2.5px solid #d8cfb8; color:var(--ink); cursor:pointer; transition:opacity .15s ease, box-shadow .15s ease;}
+.numline-cell.tile.crossed{opacity:.45;}
+.numline-cell.tile.crossed::after{content:''; position:absolute; left:2px; right:2px; top:50%; height:3px; margin-top:-1.5px; background:var(--bad); border-radius:2px; transform:rotate(-10deg);}
+.numline-bank{display:flex; gap:10px; padding:14px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:14px; flex-wrap:wrap; justify-content:center;}
+.numline-pad{flex-wrap:wrap; justify-content:center; padding:14px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:14px;}
+.bank-chip{min-width:42px; height:42px; padding:0 8px; border-radius:12px; background:var(--dc,var(--ne)); border:none; color:#fff; font-weight:800; font-size:17px;}
+.bank-chip.used{background:#e6e1d3; color:#b9b2a0;}
+.tap-order-tile{position:absolute; transform:translate(-50%,-50%); width:44px; height:44px; border-radius:50%; border:none; padding:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; color:#fff; cursor:pointer; transition:box-shadow .15s ease;}
+.tap-order-tile.tapped{box-shadow:0 0 0 3px var(--ok) inset;}
+.order-badge{position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:50%; background:var(--gold); color:#5a3d00; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:800;}
+
+.group-wrap{position:relative; width:100%; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:6px; overflow:hidden; touch-action:none;}
+.group-obj{position:absolute; transform:translate(-50%,-50%); width:40px; height:40px; border-radius:12px; border:2.5px solid transparent; display:flex; align-items:center; justify-content:center; pointer-events:none; transition:background .15s ease, border-color .15s ease, box-shadow .15s ease;}
+.group-obj svg{width:66%; height:66%;}
+.compare-ten-row{display:flex; gap:12px; margin-bottom:10px;}
+.compare-ten-card{flex:1; min-width:0; display:flex; flex-direction:column; gap:8px;}
+.compare-ten-label{align-self:center; width:30px; height:30px; border-radius:50%; background:var(--dc,var(--ne)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px;}
+.compare-ten-question{background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px; font-size:15px; font-weight:800; text-align:center; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; margin-bottom:10px;}
+.pick-btn{min-width:38px; height:38px; padding:0 8px; border-radius:10px; background:#f4efe3; border:2.5px solid #d8cfb8; font-weight:800; font-size:16px; color:var(--ink-soft); transition:box-shadow .15s ease;}
+.pick-btn.picked{background:var(--dc,var(--ne)); border-color:var(--dc,var(--ne)); color:#fff;}
+
 .feedback-box{border-radius:18px; padding:16px; margin-bottom:16px; display:flex; align-items:center; gap:12px;}
 .feedback-box.ok{background:var(--rp-bg); color:var(--rp-dark);}
 .feedback-box.bad{background:#fdeaee; color:var(--bad);}
@@ -274,6 +301,8 @@ const CHAPTERS = {
     { num:1, title:"Construire des collections jusqu'à 10", mission:"J'ai pris le bon nombre d'objets dans une collection.", missionVisual:{type:'collection', count:6}, ready:true, build: buildChapterNE01 },
     { num:2, title:"Décomposer, recomposer les nombres jusqu'à 10", mission:"J'ai cherché le nombre de jetons cachés sous un gobelet. 6, c'est 4 et 2.", missionVisual:{type:'decompose', a:4, b:2}, ready:true, build: buildChapterNE02 },
     { num:3, title:"Comparer des collections", mission:"J'ai comparé des collections sans les compter, en trouvant la plus grande et la plus petite.", missionVisual:{type:'compare', a:5, b:6}, ready:true, build: buildChapterNE03 },
+    { num:4, title:"Ordonner les nombres jusqu'à 10", mission:"J'ai construit la bande numérique jusqu'à 10. 3 se situe après 2 et avant 4.", missionVisual:{type:'order', mid:3}, ready:true, build: buildChapterNE04 },
+    { num:5, title:"Grouper par 10 pour comparer des collections", mission:"J'ai comparé des grandes collections de cubes en faisant des paquets de 10.", missionVisual:{type:'tens', a:2, b:3}, ready:true, build: buildChapterNE05 },
     { num:6, title:"Dénombrer en groupement par 10", ready:false },
     { num:7, title:"Représenter les nombres jusqu'à 19", ready:false },
     { num:8, title:"Représenter les nombres jusqu'à 59", ready:false },
@@ -287,6 +316,8 @@ const CHAPTERS = {
    ============================================================ */
 const SHAPES = ['circle','star','flower','drop','square','triangle'];
 const PALETTE = ['#e2507a','#f2784f','#3fae62','#2f7fd6','#e0a83e','#8a5fd6'];
+// Couleurs des paquets de 10 (distinctes de PALETTE, qui colore les objets eux-mêmes)
+const GROUP_COLORS = DOMAINS.map(d=>d.hex);
 
 function shapeSVG(shape, color){
   const c = color;
@@ -348,10 +379,10 @@ function isChapterMastered(domainId, num){
   const p = DATA.chapterProgress[chapterKey(domainId,num)];
   return !!(p && p.mastered);
 }
+// Tous les chapitres prêts sont accessibles dans n'importe quel ordre.
+// (Ancien comportement : chapitre N verrouillé tant que N-1 n'était pas maîtrisé.)
 function isChapterUnlocked(domainId, idx){
-  if(idx === 0) return true;
-  const list = CHAPTERS[domainId];
-  return isChapterMastered(domainId, list[idx-1].num);
+  return true;
 }
 
 /* ============================================================
@@ -614,6 +645,26 @@ function missionVisualSVG(v, d){
       ${right}
     </svg>`;
   }
+  if(v.type==='order'){
+    const nums = [v.mid-1, v.mid, v.mid+1];
+    const w=64, gap=14, totalW = nums.length*w+(nums.length-1)*gap;
+    const startX = (260-totalW)/2;
+    const boxes = nums.map((n,i)=>{
+      const x = startX+i*(w+gap), isMid = i===1;
+      return `<rect x="${x}" y="14" width="${w}" height="60" rx="14" fill="${isMid?c1:'none'}" stroke="${c1}" stroke-width="2.5"/>
+        <text x="${x+w/2}" y="52" text-anchor="middle" font-size="24" font-weight="800" fill="${isMid?'#fff':'var(--ink-soft)'}">${n}</text>`;
+    }).join('');
+    return `<svg class="mission-svg" viewBox="0 0 260 90">${boxes}</svg>`;
+  }
+  if(v.type==='tens'){
+    const sym = v.a<v.b?'&lt;':v.a>v.b?'&gt;':'=';
+    const packet=(x,y,c)=>`<rect x="${x}" y="${y}" width="26" height="20" rx="5" fill="${c}"/><text x="${x+13}" y="${y+14}" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">10</text>`;
+    const left = Array.from({length:v.a},(_,i)=>packet(14+(i%3)*30, 16+Math.floor(i/3)*26, c1)).join('');
+    const right = Array.from({length:v.b},(_,i)=>packet(158+(i%3)*30, 16+Math.floor(i/3)*26, c2)).join('');
+    return `<svg class="mission-svg" viewBox="0 0 260 90">${left}
+      <text x="130" y="52" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ink-soft)">${sym}</text>
+      ${right}</svg>`;
+  }
   if(v.type==='pattern'){
     const cols = v.colors || [c1,c2];
     const cells = Array.from({length:5}, (_,i)=> i<4
@@ -674,6 +725,8 @@ const SHAPE_META = {
 // Noms de couleur (forme "en ___", invariable) alignés sur PALETTE
 const COLOR_NAME = {'#e2507a':'rose','#f2784f':'orange','#3fae62':'vert','#2f7fd6':'bleu','#e0a83e':'jaune','#8a5fd6':'violet'};
 function shapeNoun(shape, count){ return count>1 ? SHAPE_META[shape].p : SHAPE_META[shape].s; }
+// "de fleurs" mais "d'étoiles" — élision devant une voyelle
+function deNoun(noun){ return /^[aeiouyéèêh]/i.test(noun) ? `d'${noun}` : `de ${noun}`; }
 
 // Positions dispersées (non superposées) dans toute la zone [0..1] — les formes
 // de différentes catégories sont librement mélangées, pas regroupées par zone.
@@ -687,6 +740,19 @@ function scatterFlat(n){
   }
   while(pts.length < n) pts.push({x:rnd(8,92)/100, y:rnd(12,88)/100});
   return pts;
+}
+
+// Positions rangées en grille, un nombre de colonnes fixé (utile pour les grandes
+// collections à dénombrer : un rangement clair aide à repérer les paquets de 10
+// qu'on va former). Distinct de gridPositions(n, rows) plus bas (nombre de LIGNES
+// fixé, utilisé par les cartes du chapitre 2) : signatures trop proches pour
+// partager un nom sans collision.
+function gridPositionsCols(n, cols){
+  const rows = Math.ceil(n/cols);
+  return Array.from({length:n}, (_,i)=>({
+    x: (i%cols + 0.5)/cols,
+    y: (Math.floor(i/cols) + 0.5)/rows,
+  }));
 }
 function joinFr(arr){ return arr.length<=1 ? (arr[0]||'') : arr.slice(0,-1).join(', ') + ' et ' + arr[arr.length-1]; }
 
@@ -961,6 +1027,122 @@ function buildChapterNE02(){
   return shuffleKeepBonusLast(items);
 }
 
+/* ---------- Chapitre 4 : Ordonner les nombres jusqu'à 10 ---------- */
+
+// Ex. "Barre les erreurs" — une suite de nombres qui se suivent de 1 en 1, sauf
+// 1 ou 2 valeurs remplacées par un nombre qui casse l'ordre : l'enfant doit les
+// repérer et les toucher (pas de saisie, juste désigner l'intrus).
+function makeSpotErrors(){
+  const length = pick([5,6]);
+  const start = rnd(0, 11-length);
+  const values = Array.from({length}, (_,i)=>start+i);
+  const errCount = pick([1,1,2]);
+  const errIdxArr = shuffle(values.map((_,i)=>i)).slice(0, errCount);
+  errIdxArr.forEach(i=>{
+    let bad;
+    do{ bad = rnd(0,10); } while(values.includes(bad));
+    values[i] = bad;
+  });
+  return { kind:'spot_errors', values, errIdx:new Set(errIdxArr),
+    instruction: errIdxArr.length>1 ? "Barre les nombres qui ne sont pas à leur place." : "Barre le nombre qui n'est pas à sa place.",
+    answerLabel: errIdxArr.map(i=>values[i]).join(', '), bonus:false };
+}
+
+// Ex. "Complète la ligne numérique" (mode 'keypad', l'enfant choisit un nombre sur
+// un petit clavier 0-10) / "Recopie les nombres au bon endroit" (mode 'bank', les
+// nombres à placer sont donnés en vrac et disparaissent de la liste une fois posés).
+function makeNumberLine({mode}){
+  const length = pick([6,7,8]);
+  const start = rnd(0, 11-length);
+  const values = Array.from({length}, (_,i)=>start+i);
+  const blankCount = Math.min(mode==='bank' ? pick([3,4,5]) : pick([2,3]), length-2);
+  const blanks = shuffle(values.map((_,i)=>i)).slice(0, blankCount).sort((a,b)=>a-b);
+  const bank = mode==='bank' ? shuffle(blanks.map(i=>values[i])) : null;
+  return { kind:'numline', mode, values, blanks, bank,
+    instruction: mode==='bank' ? "Recopie les nombres au bon endroit." : "Complète la ligne numérique.",
+    answerLabel: blanks.map(i=>values[i]).join(', '), bonus:false };
+}
+
+// Bonus — relier dans l'ordre les nombres de 0 à 10, dispersés en désordre : chaque
+// nombre touché est relié au précédent par un trait, comme un jeu de "points à relier".
+function makeTapOrder(){
+  const values = shuffle(Array.from({length:11},(_,i)=>i));
+  const positions = scatterFlat(values.length);
+  const sorted = Array.from({length:11},(_,i)=>i);
+  return { kind:'tap_order', values, positions, sorted, bonus:true,
+    instruction:"Touche les nombres dans l'ordre, du plus petit au plus grand.",
+    answerLabel: sorted.join(', ') };
+}
+
+function buildChapterNE04(){
+  const items = [];
+  // Exercice 1 — repérer les nombres qui cassent la suite
+  for(let i=0;i<3;i++) items.push(makeSpotErrors());
+  // Exercice 2 — compléter la ligne numérique via un petit clavier
+  for(let i=0;i<4;i++) items.push(makeNumberLine({mode:'keypad'}));
+  // Exercice 3 — recopier des nombres donnés en vrac au bon endroit
+  for(let i=0;i<4;i++) items.push(makeNumberLine({mode:'bank'}));
+  // Bonus du jour — toucher les nombres dans l'ordre croissant
+  items.push(makeTapOrder());
+  return shuffleKeepBonusLast(items);
+}
+
+/* ---------- Chapitre 5 : Grouper par 10 pour comparer des collections ---------- */
+
+// Ex. "Continue d'entourer par 10" — une seule grande collection (11 à 25 objets,
+// bien plus que ce qu'on dénombre d'un coup d'œil), rangée en grille bien nette.
+// L'enfant entoure vraiment au doigt (comme l'exercice "lasso" du chapitre 1) des
+// paquets de 10 objets ; chaque paquet complet se colore d'une teinte différente.
+function makeGroupTen(){
+  const count = pick([12,14,16,18,21,23,25]);
+  const shape = pick(SHAPES), color = pick(PALETTE);
+  const cols = count<=16 ? 4 : 6;
+  const rows = Math.ceil(count/cols);
+  const positions = gridPositionsCols(count, cols);
+  return { kind:'group_ten', count, shape, color, rows, positions,
+    instruction:"Entoure 10 objets à la fois avec le doigt pour former des paquets de 10.",
+    answerLabel:`${count} ${shapeNoun(shape,count)}`, bonus:false };
+}
+
+// Ex. "Compare en entourant par 10" — deux grandes collections nommées A et B
+// (écart net, jamais évident au premier coup d'œil) que l'enfant entoure par
+// paquets de 10 avant de répondre à la phrase "C'est la collection ... qui a le
+// plus/moins de ..." en touchant A ou B (jamais la collection elle-même, pour ne
+// pas confondre le geste de comptage avec le geste de réponse).
+function makeCompareTen({mode}){
+  const shape = pick(SHAPES), color = pick(PALETTE);
+  const base = rnd(12,20);
+  const gap = pick([3,4,5,6,7]);
+  const counts = shuffle([base, base+gap]);
+  const targetCount = mode==='biggest' ? Math.max(...counts) : Math.min(...counts);
+  const groups = counts.map(count=>{
+    const cols = count<=16 ? 4 : 6;
+    return { count, cols, rows: Math.ceil(count/cols), positions: gridPositionsCols(count, cols) };
+  });
+  const targetIdx = groups.findIndex(g=>g.count===targetCount);
+  const label = mode==='biggest' ? 'plus' : 'moins';
+  return { kind:'compare_ten', mode, shape, color, groups, targetIdx,
+    instruction:"Entoure chaque collection par paquets de 10, puis réponds à la question.",
+    questionLabel: `qui a le ${label} ${deNoun(shapeNoun(shape,2))}`,
+    answerLabel:`la collection ${targetIdx===0?'A':'B'} (${targetCount} ${shapeNoun(shape,targetCount)})`, bonus:false };
+}
+
+function buildChapterNE05(){
+  const items = [];
+  // Exercice 1 — s'entraîner à grouper par 10 sur une seule collection
+  for(let i=0;i<3;i++) items.push(makeGroupTen());
+  // Exercice 2 — comparer deux grandes collections en les groupant par 10
+  items.push(makeCompareTen({mode:'biggest'}));
+  items.push(makeCompareTen({mode:'biggest'}));
+  items.push(makeCompareTen({mode:'biggest'}));
+  items.push(makeCompareTen({mode:'smallest'}));
+  items.push(makeCompareTen({mode:'smallest'}));
+  items.push(makeCompareTen({mode:'smallest'}));
+  // Bonus du jour — relier les nombres dans l'ordre (nénuphars)
+  items.push(makeTapOrder());
+  return shuffleKeepBonusLast(items);
+}
+
 /* ============================================================
    SESSION EN COURS
    ============================================================ */
@@ -999,6 +1181,13 @@ function renderSessionItem(){
     : item.kind==='fingers' ? { dots:[], digit:null }
     : item.kind==='compare' ? null
     : item.kind==='crossout' ? { left:new Set(), right:new Set() }
+    : item.kind==='numline' ? { answers:Array(item.blanks.length).fill(null), selected:0,
+        bankUsed: item.bank ? Array(item.bank.length).fill(false) : null,
+        bankIdxFor: item.bank ? Array(item.blanks.length).fill(null) : null }
+    : item.kind==='spot_errors' ? new Set()
+    : item.kind==='tap_order' ? []
+    : item.kind==='group_ten' ? { assigned:Array(item.count).fill(null), nextGroup:0 }
+    : item.kind==='compare_ten' ? { assigned:item.groups.map(g=>Array(g.count).fill(null)), nextGroup:[0,0], selected:null }
     : item.sequence.map((v,i)=> i<item.hiddenFrom ? v : null);
 
   el.innerHTML = `
@@ -1317,7 +1506,181 @@ function renderInteraction(item){
       if(set.has(i)) set.delete(i); else set.add(i);
       el.classList.toggle('crossed');
     }));
+  } else if(item.kind==='numline'){
+    const cellHTML = item.values.map((v,i)=>{
+      const k = item.blanks.indexOf(i);
+      if(k===-1) return `<div class="numline-cell fixed">${v}</div>`;
+      const val = session.tapState.answers[k];
+      const active = session.tapState.selected===k;
+      return `<div class="numline-cell blank ${val!=null?'filled':''} ${active?'active':''}" data-k="${k}">${val!=null?val:''}</div>`;
+    }).join('');
+    const padHTML = item.mode==='bank'
+      ? `<div class="numline-bank" id="numline-bank">${item.bank.map((v,bi)=>`<button class="bank-chip ${session.tapState.bankUsed[bi]?'used':''}" data-bi="${bi}" ${session.tapState.bankUsed[bi]?'disabled':''}>${v}</button>`).join('')}</div>`
+      : `<div class="digit-picker numline-pad">${Array.from({length:11},(_,n)=>n).map(n=>`<button class="digit-btn" data-n="${n}">${n}</button>`).join('')}</div>`;
+    zone.innerHTML = `<div class="numline-row" id="numline-row">${cellHTML}</div>${padHTML}
+      <div class="interaction-hint">${item.mode==='bank' ? "Touche une case vide, puis un nombre de la liste" : "Touche une case vide, puis un nombre du clavier"}</div>`;
+    const repaint = ()=>{
+      zone.querySelectorAll('.numline-cell.blank').forEach(el=>{
+        const k = parseInt(el.dataset.k);
+        const val = session.tapState.answers[k];
+        el.textContent = val!=null ? val : '';
+        el.classList.toggle('filled', val!=null);
+        el.classList.toggle('active', session.tapState.selected===k);
+      });
+      if(item.mode==='bank'){
+        zone.querySelectorAll('.bank-chip').forEach(btn=>{
+          const bi = parseInt(btn.dataset.bi);
+          btn.classList.toggle('used', session.tapState.bankUsed[bi]);
+          btn.disabled = session.tapState.bankUsed[bi];
+        });
+      }
+    };
+    const selectNextEmpty = ()=>{
+      const next = session.tapState.answers.findIndex(a=>a==null);
+      if(next>=0) session.tapState.selected = next;
+    };
+    zone.querySelectorAll('.numline-cell.blank').forEach(el=>el.addEventListener('click', ()=>{
+      if(session.answered) return;
+      const k = parseInt(el.dataset.k);
+      if(session.tapState.answers[k]!=null){
+        if(item.mode==='bank'){
+          const bi = session.tapState.bankIdxFor[k];
+          if(bi!=null) session.tapState.bankUsed[bi] = false;
+          session.tapState.bankIdxFor[k] = null;
+        }
+        session.tapState.answers[k] = null;
+      }
+      session.tapState.selected = k;
+      repaint();
+    }));
+    if(item.mode==='bank'){
+      zone.querySelectorAll('.bank-chip').forEach(btn=>btn.addEventListener('click', ()=>{
+        if(session.answered || btn.disabled) return;
+        const bi = parseInt(btn.dataset.bi);
+        const k = session.tapState.selected;
+        if(session.tapState.answers[k]!=null){
+          const prevBi = session.tapState.bankIdxFor[k];
+          if(prevBi!=null) session.tapState.bankUsed[prevBi] = false;
+        }
+        session.tapState.answers[k] = item.bank[bi];
+        session.tapState.bankIdxFor[k] = bi;
+        session.tapState.bankUsed[bi] = true;
+        selectNextEmpty();
+        repaint();
+      }));
+    } else {
+      zone.querySelectorAll('.numline-pad .digit-btn').forEach(btn=>btn.addEventListener('click', ()=>{
+        if(session.answered) return;
+        const k = session.tapState.selected;
+        session.tapState.answers[k] = parseInt(btn.dataset.n);
+        selectNextEmpty();
+        repaint();
+      }));
+    }
+  } else if(item.kind==='spot_errors'){
+    zone.innerHTML = `<div class="numline-row" id="spot-row">${item.values.map((v,i)=>`<div class="numline-cell tile ${session.tapState.has(i)?'crossed':''}" data-i="${i}">${v}</div>`).join('')}</div>
+      <div class="interaction-hint">Touche les nombres qui cassent la suite</div>`;
+    zone.querySelectorAll('.numline-cell.tile').forEach(el=>el.addEventListener('click', ()=>{
+      if(session.answered) return;
+      const i = parseInt(el.dataset.i);
+      if(session.tapState.has(i)) session.tapState.delete(i); else session.tapState.add(i);
+      el.classList.toggle('crossed');
+    }));
+  } else if(item.kind==='tap_order'){
+    const lineHTML = session.tapState.length>1
+      ? `<svg class="lasso-svg" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${session.tapState.map(i=>(item.positions[i].x*100)+','+(item.positions[i].y*100)).join(' ')}" fill="none" stroke="${dc()}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`
+      : '';
+    zone.innerHTML = `<div class="scatter-wrap" id="scatter-wrap">${lineHTML}${
+      item.values.map((v,i)=>{
+        const order = session.tapState.indexOf(i);
+        return `<button class="tap-order-tile ${order>=0?'tapped':''}" data-i="${i}" style="left:${item.positions[i].x*100}%; top:${item.positions[i].y*100}%; background:${dc()}">${v}${order>=0?`<span class="order-badge">${order+1}</span>`:''}</button>`;
+      }).join('')
+    }</div>
+      <div class="interaction-hint">Touche les nombres du plus petit au plus grand : ils seront reliés par un trait</div>`;
+    zone.querySelectorAll('.tap-order-tile').forEach(el=>el.addEventListener('click', ()=>{
+      if(session.answered) return;
+      const i = parseInt(el.dataset.i);
+      if(session.tapState.includes(i)) return;
+      session.tapState.push(i);
+      renderInteraction(item);
+    }));
+  } else if(item.kind==='group_ten'){
+    const objHTML = item.positions.map((p,i)=>{
+      const gi = session.tapState.assigned[i];
+      const gc = gi!=null ? GROUP_COLORS[gi%GROUP_COLORS.length] : null;
+      return `<div class="group-obj" style="left:${p.x*100}%; top:${p.y*100}%; ${gc?`background:${gc}33; border-color:${gc};`:''}">${shapeSVG(item.shape, item.color)}</div>`;
+    }).join('');
+    zone.innerHTML = `<div class="group-wrap lasso-mode" id="group-wrap" style="height:${item.rows*66}px">${objHTML}<svg class="lasso-svg" id="lasso-svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg></div>
+      <div class="interaction-hint">Entoure 10 objets à la fois avec le doigt pour former un paquet</div>`;
+    bindGroupLasso(document.getElementById('group-wrap'), item.positions, (enclosed)=>{
+      enclosed.forEach(i=> session.tapState.assigned[i] = session.tapState.nextGroup);
+      session.tapState.nextGroup++;
+    }, (i)=> session.tapState.assigned[i]==null, ()=>renderInteraction(item));
+  } else if(item.kind==='compare_ten'){
+    const cardHTML = item.groups.map((g,gi)=>{
+      const objHTML = g.positions.map((p,i)=>{
+        const grp = session.tapState.assigned[gi][i];
+        const gc = grp!=null ? GROUP_COLORS[grp%GROUP_COLORS.length] : null;
+        return `<div class="group-obj" style="left:${p.x*100}%; top:${p.y*100}%; ${gc?`background:${gc}33; border-color:${gc};`:''}">${shapeSVG(item.shape, item.color)}</div>`;
+      }).join('');
+      return `<div class="compare-ten-card">
+          <div class="compare-ten-label">${gi===0?'A':'B'}</div>
+          <div class="group-wrap lasso-mode" data-gi="${gi}" style="height:${g.rows*66}px">${objHTML}<svg class="lasso-svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg></div>
+        </div>`;
+    }).join('');
+    zone.innerHTML = `<div class="compare-ten-row">${cardHTML}</div>
+      <div class="compare-ten-question">C'est la collection
+        <button class="pick-btn ${session.tapState.selected===0?'picked':''}" data-gi="0">A</button>
+        <button class="pick-btn ${session.tapState.selected===1?'picked':''}" data-gi="1">B</button>
+        ${item.questionLabel}.
+      </div>
+      <div class="interaction-hint">Entoure 10 objets à la fois dans chaque collection</div>`;
+    zone.querySelectorAll('.group-wrap').forEach(wrap=>{
+      const gi = parseInt(wrap.dataset.gi);
+      bindGroupLasso(wrap, item.groups[gi].positions, (enclosed)=>{
+        enclosed.forEach(i=> session.tapState.assigned[gi][i] = session.tapState.nextGroup[gi]);
+        session.tapState.nextGroup[gi]++;
+      }, (i)=> session.tapState.assigned[gi][i]==null, ()=>renderInteraction(item));
+    });
+    zone.querySelectorAll('.pick-btn').forEach(btn=>btn.addEventListener('click', ()=>{
+      if(session.answered) return;
+      session.tapState.selected = parseInt(btn.dataset.gi);
+      renderInteraction(item);
+    }));
   }
+}
+
+// Lasso réutilisable pour "entourer par paquets de 10" : dessine un trait au doigt,
+// et si exactement 10 objets encore disponibles se retrouvent à l'intérieur au
+// relâchement, appelle onGroup(enclosed) ; sinon le trait clignote en rouge.
+function bindGroupLasso(wrap, positions, onGroup, isAvailable, onChange){
+  const lsvg = wrap.querySelector('.lasso-svg');
+  let drawing = false, path = [];
+  const dc = ()=> getComputedStyle(document.getElementById('screen-session')).getPropertyValue('--dc') || '#e2507a';
+  const ptFromEvent = (e)=>{ const r = wrap.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width*100, y:(e.clientY-r.top)/r.height*100}; };
+  const drawLine = (c)=>{ lsvg.innerHTML = path.length>1 ? `<polyline points="${path.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${c||dc()}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` : ''; };
+  wrap.addEventListener('pointerdown', (e)=>{
+    if(session.answered) return;
+    drawing = true; path = [ptFromEvent(e)];
+    try{ wrap.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  wrap.addEventListener('pointermove', (e)=>{ if(!drawing) return; path.push(ptFromEvent(e)); drawLine(); });
+  wrap.addEventListener('pointerup', ()=>{
+    if(!drawing) return;
+    drawing = false;
+    if(path.length>2){
+      const enclosed = positions.map((p,i)=>i).filter(i=> isAvailable(i) && pointInPolygon(positions[i].x*100, positions[i].y*100, path));
+      if(enclosed.length===10){
+        onGroup(enclosed);
+        path = []; onChange();
+        return;
+      }
+      drawLine('var(--bad)');
+      setTimeout(()=>{ path=[]; drawLine(); }, 350);
+      return;
+    }
+    path = []; drawLine();
+  });
 }
 
 function checkItem(item){
@@ -1330,6 +1693,12 @@ function checkItem(item){
     const otherSet = item.excessSide==='left' ? session.tapState.right : session.tapState.left;
     return excessSet.size===item.diff && otherSet.size===0;
   }
+  if(item.kind==='numline') return item.blanks.every((idx,k)=> session.tapState.answers[k] === item.values[idx]);
+  if(item.kind==='spot_errors') return session.tapState.size===item.errIdx.size && [...item.errIdx].every(i=>session.tapState.has(i));
+  if(item.kind==='tap_order') return session.tapState.length===item.values.length && session.tapState.every((idx,i)=> item.values[idx]===item.sorted[i]);
+  if(item.kind==='group_ten') return session.tapState.nextGroup===Math.floor(item.count/10);
+  if(item.kind==='compare_ten') return session.tapState.selected===item.targetIdx
+    && item.groups.every((g,gi)=> session.tapState.nextGroup[gi]===Math.floor(g.count/10));
   if(item.kind==='lasso'){
     let inCat=0, outCat=0;
     session.tapState.forEach(i=>{ item.objects[i].cat===item.targetIdx ? inCat++ : outCat++; });
@@ -1375,6 +1744,17 @@ function markAnswered(item, ok){
     if(card) card.style.boxShadow = `0 0 0 3px ${col} inset`;
   } else if(item.kind==='crossout'){
     document.querySelectorAll('.crossout-item.crossed').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; });
+  } else if(item.kind==='numline'){
+    document.querySelectorAll('.numline-cell.blank').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; });
+  } else if(item.kind==='spot_errors'){
+    document.querySelectorAll('.numline-cell.tile.crossed').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; });
+  } else if(item.kind==='tap_order'){
+    document.querySelectorAll('.tap-order-tile.tapped').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; });
+  } else if(item.kind==='group_ten'){
+    document.getElementById('group-wrap').style.boxShadow = `0 0 0 3px ${col} inset`;
+  } else if(item.kind==='compare_ten'){
+    const btn = document.querySelector(`.pick-btn[data-gi="${session.tapState.selected}"]`);
+    if(btn) btn.style.boxShadow = `0 0 0 3px ${col} inset`;
   }
 }
 
