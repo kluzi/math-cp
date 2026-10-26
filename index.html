@@ -204,6 +204,42 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .pick-btn{min-width:38px; height:38px; padding:0 8px; border-radius:10px; background:#f4efe3; border:2.5px solid #d8cfb8; font-weight:800; font-size:16px; color:var(--ink-soft); transition:box-shadow .15s ease;}
 .pick-btn.picked{background:var(--dc,var(--ne)); border-color:var(--dc,var(--ne)); color:#fff;}
 
+/* Chapitres 6 à 9 : dizaines/unités, représentations, comparaison */
+.bt-svg{max-width:100%; height:auto; display:block;}
+.visual-card{background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:14px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:14px; min-height:90px;}
+.prompt-big{font-size:19px; font-weight:800; font-family:var(--font-modern); text-align:center; line-height:1.3;}
+.dg-rows{background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:14px; margin-bottom:14px;}
+.dg-row{display:flex; align-items:flex-start; justify-content:center; flex-wrap:wrap; gap:8px 10px; font-weight:800; font-size:15px;}
+.dg-row + .dg-row{margin-top:14px; padding-top:14px; border-top:2px solid #f0ead8;}
+.dg-pre,.dg-join{margin-top:14px; color:var(--ink-soft);}
+.dg-cell{display:flex; flex-direction:column; align-items:center; gap:4px;}
+.dg-box{width:46px; height:52px; border-radius:12px; border:2.5px dashed #d8cfb8; background:#fff; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; color:var(--dc,var(--ne)); cursor:pointer; transition:box-shadow .15s ease;}
+.dg-box.filled{border-style:solid;}
+.dg-box.active{border-color:var(--dc,var(--ne)); background:#fff7f0;}
+.dg-pad{gap:6px;}
+.dg-label{font-size:12px; color:var(--ink-soft); font-weight:700;}
+.opt-row{display:grid; gap:10px; margin-bottom:10px;}
+.opt-card{width:100%; min-height:64px; padding:12px 10px; border-radius:var(--radius); background:#fff; box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; text-align:center; font-weight:800; font-size:15px; transition:box-shadow .15s ease;}
+.opt-card.big{font-size:30px; min-height:78px; font-family:var(--font-modern);}
+.opt-card.selected{box-shadow:0 0 0 3px var(--dc,var(--ne)) inset;}
+.animal{display:flex; flex-direction:column; align-items:center; gap:8px;}
+.animal-name{font-size:14px;}
+.animal-kg{background:#f4efe3; border:2px solid #d8cfb8; border-radius:10px; padding:4px 10px; font-size:17px;}
+.strip{display:flex; flex-wrap:wrap; gap:3px; justify-content:center; padding:10px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:12px;}
+.strip-cell{min-width:30px; height:30px; padding:0 3px; border-radius:7px; background:#f4efe3; color:var(--ink-soft); font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center;}
+.sign-row{display:flex; align-items:center; justify-content:center; gap:16px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:22px 10px; margin-bottom:14px;}
+.sign-num{font-size:38px; font-weight:800; font-family:var(--font-modern); min-width:56px; text-align:center;}
+.sign-slot{width:60px; height:60px; border-radius:50%; border:3px dashed #d8cfb8; display:flex; align-items:center; justify-content:center; font-size:34px; font-weight:800; color:var(--dc,var(--ne)); transition:box-shadow .15s ease;}
+.sign-slot.filled{border-style:solid; border-color:var(--dc,var(--ne));}
+.sign-btns{display:flex; justify-content:center; gap:18px; margin-bottom:10px;}
+.sign-btn{width:72px; height:72px; border-radius:20px; background:var(--dc,var(--ne)); color:#fff; font-size:38px; font-weight:800; box-shadow:var(--shadow);}
+.sign-btn:active{transform:scale(.94);}
+.rep-palette{display:flex; justify-content:center; gap:14px; margin-bottom:14px;}
+.rep-chip{min-width:62px; height:50px; padding:0 14px; border-radius:14px; background:#fff; border:3.5px solid var(--mc); color:var(--mc); font-weight:800; font-size:24px; box-shadow:var(--shadow);}
+.rep-chip.active{background:var(--mc); color:#fff; transform:scale(1.08);}
+.rep-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:10px;}
+.rep-card{min-height:92px; padding:10px; border-radius:var(--radius); background:#fff; border:3.5px solid transparent; box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; transition:box-shadow .15s ease;}
+
 .feedback-box{border-radius:18px; padding:16px; margin-bottom:16px; display:flex; align-items:center; gap:12px;}
 .feedback-box.ok{background:var(--rp-bg); color:var(--rp-dark);}
 .feedback-box.bad{background:#fdeaee; color:var(--bad);}
@@ -303,10 +339,10 @@ const CHAPTERS = {
     { num:3, title:"Comparer des collections", mission:"J'ai comparé des collections sans les compter, en trouvant la plus grande et la plus petite.", missionVisual:{type:'compare', a:5, b:6}, ready:true, build: buildChapterNE03 },
     { num:4, title:"Ordonner les nombres jusqu'à 10", mission:"J'ai construit la bande numérique jusqu'à 10. 3 se situe après 2 et avant 4.", missionVisual:{type:'order', mid:3}, ready:true, build: buildChapterNE04 },
     { num:5, title:"Grouper par 10 pour comparer des collections", mission:"J'ai comparé des grandes collections de cubes en faisant des paquets de 10.", missionVisual:{type:'tens', a:2, b:3}, ready:true, build: buildChapterNE05 },
-    { num:6, title:"Dénombrer en groupement par 10", ready:false },
-    { num:7, title:"Représenter les nombres jusqu'à 19", ready:false },
-    { num:8, title:"Représenter les nombres jusqu'à 59", ready:false },
-    { num:9, title:"Comparer les nombres jusqu'à 59", ready:false },
+    { num:6, title:"Dénombrer en groupement par 10", mission:"J'ai découvert un nouveau matériel qui représente les dizaines et les unités. Ici, je vois 3 dizaines et 9 unités.", missionVisual:{type:'basetens', t:3, u:9}, ready:true, build: buildChapterNE06 },
+    { num:7, title:"Représenter les nombres jusqu'à 19", mission:"J'ai découvert l'écriture des nombres en chiffres jusqu'à 19. 17, c'est 10 + 7 : 1 dizaine et 7 unités.", missionVisual:{type:'digits19', n:17}, ready:true, build: buildChapterNE07 },
+    { num:8, title:"Représenter les nombres jusqu'à 59", mission:"Avec mon matériel, j'ai représenté un nombre dit à l'oral. Cinquante-quatre, c'est 5 dizaines et 4 unités.", missionVisual:{type:'rep59', t:5, u:4}, ready:true, build: buildChapterNE08 },
+    { num:9, title:"Comparer les nombres jusqu'à 59", mission:"J'ai comparé deux nombres avec la bande numérique. 35 est plus grand que 27 car il se trouve après sur la bande numérique.", missionVisual:{type:'cmpnum', a:27, b:35}, ready:true, build: buildChapterNE09 },
   ],
   CA: [], RP: [], GM: [], EG: [], OG: [],
 };
@@ -674,6 +710,45 @@ function missionVisualSVG(v, d){
     return `<svg class="mission-svg" viewBox="0 0 260 90">
       ${cells}
       <path d="M215 45 h20 m-8 -8 l8 8 l-8 8" fill="none" stroke="var(--ink-soft)" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if(v.type==='basetens'){
+    const p = baseTenParts(v.t, v.u), s = 1.0;
+    return `<svg class="mission-svg" viewBox="0 0 260 90">
+      <g transform="translate(${Math.round(120-p.W*s)/2+10},${(90-p.H*s)/2}) scale(${s})">${p.inner}</g>
+      <text x="170" y="38" font-size="15" font-weight="800" fill="${ROD_RED}">${v.t} ${tensWord(v.t)}</text>
+      <text x="170" y="62" font-size="15" font-weight="800" fill="${CUBE_BLUE}">${v.u} ${unitsWord(v.u)}</text>
+    </svg>`;
+  }
+  if(v.type==='digits19'){
+    const u = v.n%10, d = [String(Math.floor(v.n/10)), String(u)];
+    const box = (x,txt,w,fill,col)=>`<rect x="${x}" y="22" width="${w}" height="46" rx="12" fill="${fill}" stroke="${c1}" stroke-width="2.5"/><text x="${x+w/2}" y="55" text-anchor="middle" font-size="24" font-weight="800" fill="${col}">${txt}</text>`;
+    return `<svg class="mission-svg" viewBox="0 0 260 90">
+      ${box(14,d[0],42,c1,'#fff')}${box(60,d[1],42,c1,'#fff')}
+      <text x="124" y="55" text-anchor="middle" font-size="24" font-weight="800" fill="var(--ink-soft)">=</text>
+      ${box(146,'10',44,'none','var(--ink-soft)')}
+      <text x="204" y="55" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ink-soft)">+</text>
+      ${box(216,String(u),34,'none','var(--ink-soft)')}
+    </svg>`;
+  }
+  if(v.type==='rep59'){
+    const p = baseTenParts(v.t, v.u), s = 0.85;
+    const box = (x,txt)=>`<rect x="${x}" y="16" width="44" height="50" rx="12" fill="${c1}"/><text x="${x+22}" y="51" text-anchor="middle" font-size="28" font-weight="800" fill="#fff">${txt}</text>`;
+    return `<svg class="mission-svg" viewBox="0 0 260 90">
+      <g transform="translate(14,${(90-p.H*s)/2}) scale(${s})">${p.inner}</g>
+      ${box(150,v.t)}${box(200,v.u)}
+      <text x="172" y="84" text-anchor="middle" font-size="10" font-weight="800" fill="var(--ink-soft)">dizaines</text>
+      <text x="222" y="84" text-anchor="middle" font-size="10" font-weight="800" fill="var(--ink-soft)">unités</text>
+    </svg>`;
+  }
+  if(v.type==='cmpnum'){
+    const sym = v.a<v.b?'&lt;':v.a>v.b?'&gt;':'=';
+    return `<svg class="mission-svg" viewBox="0 0 260 90">
+      <rect x="22" y="16" width="84" height="58" rx="14" fill="none" stroke="${c1}" stroke-width="2.5"/>
+      <text x="64" y="55" text-anchor="middle" font-size="30" font-weight="800" fill="${c1}">${v.a}</text>
+      <text x="130" y="55" text-anchor="middle" font-size="30" font-weight="800" fill="var(--ink-soft)">${sym}</text>
+      <rect x="154" y="16" width="84" height="58" rx="14" fill="${c1}"/>
+      <text x="196" y="55" text-anchor="middle" font-size="30" font-weight="800" fill="#fff">${v.b}</text>
     </svg>`;
   }
   return '';
@@ -1051,15 +1126,26 @@ function makeSpotErrors(){
 // Ex. "Complète la ligne numérique" (mode 'keypad', l'enfant choisit un nombre sur
 // un petit clavier 0-10) / "Recopie les nombres au bon endroit" (mode 'bank', les
 // nombres à placer sont donnés en vrac et disparaissent de la liste une fois posés).
-function makeNumberLine({mode}){
-  const length = pick([6,7,8]);
-  const start = rnd(0, 11-length);
+// lo/hi : bornes de la suite (0-10 par défaut). extras : leurres ajoutés à la liste
+// en mode 'bank' (chapitre 7 : suite jusqu'à 19).
+function makeNumberLine({mode, lo=0, hi=10, extras=0, instruction}){
+  const length = Math.min(hi-lo+1, pick([6,7,8]));
+  const start = rnd(lo, hi-length+1);
   const values = Array.from({length}, (_,i)=>start+i);
   const blankCount = Math.min(mode==='bank' ? pick([3,4,5]) : pick([2,3]), length-2);
   const blanks = shuffle(values.map((_,i)=>i)).slice(0, blankCount).sort((a,b)=>a-b);
-  const bank = mode==='bank' ? shuffle(blanks.map(i=>values[i])) : null;
+  let bank = null;
+  if(mode==='bank'){
+    const items = blanks.map(i=>values[i]);
+    let guard = 0;
+    while(items.length < blanks.length+extras && guard++ < 200){
+      const d = rnd(lo, hi);
+      if(!items.includes(d)) items.push(d);
+    }
+    bank = shuffle(items);
+  }
   return { kind:'numline', mode, values, blanks, bank,
-    instruction: mode==='bank' ? "Recopie les nombres au bon endroit." : "Complète la ligne numérique.",
+    instruction: instruction || (mode==='bank' ? "Recopie les nombres au bon endroit." : "Complète la ligne numérique."),
     answerLabel: blanks.map(i=>values[i]).join(', '), bonus:false };
 }
 
@@ -1143,6 +1229,329 @@ function buildChapterNE05(){
   return shuffleKeepBonusLast(items);
 }
 
+/* ---------- Chapitres 6 à 9 : dizaines, unités et représentation des nombres ---------- */
+
+const ROD_RED = '#d6453d', CUBE_BLUE = '#3a73d1', INK = '#2f2a44';
+const MATCH_COLORS = ['#3fae62','#2f7fd6','#f2784f'];
+function tensWord(t){ return t>1 ? 'dizaines' : 'dizaine'; }
+function unitsWord(u){ return u>1 ? 'unités' : 'unité'; }
+// "4 dizaines et 3 unités" (ou "3 unités et 4 dizaines" si unitsFirst) ; un terme nul est omis
+function tensPhrase(t, u, unitsFirst){
+  const a = t>0 ? `${t} ${tensWord(t)}` : null, b = u>0 ? `${u} ${unitsWord(u)}` : null;
+  if(a && b) return unitsFirst ? `${b} et ${a}` : `${a} et ${b}`;
+  return a || b || '0';
+}
+
+// Matériel de numération : barres rouges de 10 (dizaines) + petits cubes bleus (unités)
+function baseTenParts(t, u){
+  const rodW=11, rodH=76, gap=3, cube=11, mid=(t&&u)?16:0;
+  const ucols = u>9 ? 5 : 3;
+  const rodsW = t ? t*(rodW+gap)-gap : 0;
+  const unitsW = u ? Math.min(u,ucols)*(cube+gap)-gap : 0;
+  let inner = '';
+  for(let i=0;i<t;i++){
+    const x = i*(rodW+gap);
+    inner += `<rect x="${x}" y="0" width="${rodW}" height="${rodH}" rx="2" fill="${ROD_RED}"/>`;
+    for(let k=1;k<10;k++) inner += `<line x1="${x}" x2="${x+rodW}" y1="${k*rodH/10}" y2="${k*rodH/10}" stroke="#fff" stroke-opacity=".6" stroke-width="1"/>`;
+  }
+  for(let i=0;i<u;i++){
+    const col = i%ucols, row = Math.floor(i/ucols);
+    inner += `<rect x="${rodsW+mid+col*(cube+gap)}" y="${rodH-(row+1)*(cube+gap)+gap}" width="${cube}" height="${cube}" rx="2" fill="${CUBE_BLUE}"/>`;
+  }
+  return { inner, W:Math.max(rodsW+mid+unitsW, 14), H:rodH };
+}
+function baseTenSVG(t, u, scale=1){
+  const p = baseTenParts(t,u);
+  return `<svg class="bt-svg" width="${Math.round(p.W*scale)}" height="${Math.round(p.H*scale)}" viewBox="0 0 ${p.W} ${p.H}">${p.inner}</svg>`;
+}
+
+// Cadres de 10 (2 lignes de 5), remplis ligne par ligne, un cadre à la fois
+function framesSVG(n, scale=1.2){
+  const counts = []; let left = n;
+  while(left>0){ counts.push(Math.min(10,left)); left -= 10; }
+  const F = counts.length || 1;
+  const cols = F<=2 ? 1 : F<=4 ? 2 : 3;
+  const cell=13, fw=cell*5, fh=cell*2, gap=7;
+  const rows = Math.ceil(F/cols);
+  const W = cols*fw+(cols-1)*gap, H = rows*fh+(rows-1)*gap;
+  let inner = '';
+  for(let i=0;i<F;i++){
+    const x = (i%cols)*(fw+gap), y = Math.floor(i/cols)*(fh+gap);
+    inner += `<rect x="${x}" y="${y}" width="${fw}" height="${fh}" rx="3" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`;
+    for(let k=1;k<5;k++) inner += `<line x1="${x+k*cell}" x2="${x+k*cell}" y1="${y}" y2="${y+fh}" stroke="${INK}" stroke-width="1"/>`;
+    inner += `<line x1="${x}" x2="${x+fw}" y1="${y+cell}" y2="${y+cell}" stroke="${INK}" stroke-width="1"/>`;
+    for(let j=0;j<(counts[i]||0);j++) inner += `<circle cx="${x+(j%5+0.5)*cell}" cy="${y+(Math.floor(j/5)+0.5)*cell}" r="${cell*0.34}" fill="${INK}"/>`;
+  }
+  return `<svg class="bt-svg" width="${Math.round(W*scale)}" height="${Math.round(H*scale)}" viewBox="0 0 ${W} ${H}">${inner}</svg>`;
+}
+
+// Sacs de 10 billes + billes isolées
+function bagsSVG(t, u, scale=1.2){
+  const cols = ['#e2507a','#3fae62','#2f7fd6','#f2784f','#e0a83e'];
+  const slots = [[15,27],[21,27],[27,27],[33,27],[13,34],[19,34],[25,34],[31,34],[17,42],[27,42]];
+  const bagW = 48;
+  let inner = '';
+  for(let b=0;b<t;b++){
+    inner += `<g transform="translate(${b*bagW},0)"><path d="M12 18 L8 8 L20 13 L32 8 L28 18 Z" fill="#a8703a"/><path d="M8 18 Q3 40 10 50 Q22 56 34 50 Q41 40 36 18 Z" fill="#c68a4b"/>${slots.map(([cx,cy],i)=>`<circle cx="${cx+1}" cy="${cy}" r="2.8" fill="${cols[i%cols.length]}"/>`).join('')}</g>`;
+  }
+  const x0 = t*bagW + (t?6:0);
+  for(let i=0;i<u;i++) inner += `<circle cx="${x0+(i%3)*10+4}" cy="${50-Math.floor(i/3)*10}" r="3.4" fill="${cols[i%cols.length]}"/>`;
+  const W = Math.max(x0 + (u ? Math.min(u,3)*10 : 0), 20), H = 58;
+  return `<svg class="bt-svg" width="${Math.round(W*scale)}" height="${Math.round(H*scale)}" viewBox="0 0 ${W} ${H}">${inner}</svg>`;
+}
+
+// Boîtes de 10 objets + objets isolés (comme les boîtes d'œufs du manuel)
+function packetsSVG(t, u, shape, color, scale=1.15){
+  const s=11, pw=5*(s+1)+6, ph=2*(s+1)+6, gx=6;
+  const icon = (x,y)=> shapeSVG(shape,color).replace('<svg ', `<svg x="${x}" y="${y}" width="${s}" height="${s}" `);
+  const prows = Math.ceil(t/2);
+  let inner = '';
+  for(let p=0;p<t;p++){
+    const x = (p%2)*(pw+gx), y = Math.floor(p/2)*(ph+gx);
+    inner += `<rect x="${x}" y="${y}" width="${pw}" height="${ph}" rx="6" fill="#fffaf0" stroke="${color}" stroke-width="2"/>`;
+    for(let i=0;i<10;i++) inner += icon(x+3+(i%5)*(s+1), y+3+Math.floor(i/5)*(s+1));
+  }
+  const x0 = Math.min(t,2)*(pw+gx) + 6;
+  for(let i=0;i<u;i++) inner += icon(x0+(i%3)*(s+3), Math.floor(i/3)*(s+3)+2);
+  const W = Math.max(x0 + (u ? Math.min(u,3)*(s+3) : 0), 20);
+  const H = Math.max(prows*(ph+gx)-gx, u ? Math.ceil(u/3)*(s+3)+2 : 0, 20);
+  return `<svg class="bt-svg" width="${Math.round(W*scale)}" height="${Math.round(H*scale)}" viewBox="0 0 ${W} ${H}">${inner}</svg>`;
+}
+
+// Représentation d'un nombre sous la forme demandée (cartes à associer, exercices "Écris le nombre")
+function reprHTML(kind, n){
+  const t = Math.floor(n/10), u = n%10;
+  if(kind==='frames') return framesSVG(n, 1.0);
+  if(kind==='bag') return bagsSVG(t, u, 1.0);
+  if(kind==='sum') return `<div class="prompt-big">${Math.random()<0.5 ? `10 + ${u}` : `${u} + 10`}</div>`;
+  return `<div class="prompt-big">${tensPhrase(t, u, Math.random()<0.5)}</div>`;
+}
+
+// Ex. "Complète" — quelques cases à remplir au petit pavé 0-9. rows : lignes de cases,
+// chaque case a sa bonne réponse et son étiquette (dizaines / unités / aucune).
+function makeDigits({visualHTML, rows, instruction, answerLabel, bonus}){
+  return { kind:'digits', visualHTML, rows, instruction, answerLabel, bonus:!!bonus };
+}
+const countRow = (t,u)=>({ cells:[{answer:t,label:tensWord(t)},{answer:u,label:unitsWord(u)}], joiner:'et' });
+const numberRow = (t,u)=>({ prefix:'Le nombre :', cells:[{answer:t,label:'dizaines'},{answer:u,label:'unités'}] });
+
+// Ch. 6 — "… dizaines et … unités" devant du matériel de numération
+function makeDigitsCount({t,u}){
+  return makeDigits({ visualHTML: baseTenSVG(t,u,1.25), rows:[countRow(t,u)],
+    instruction:"Combien de dizaines et d'unités vois-tu ?", answerLabel:`${tensPhrase(t,u)}` });
+}
+// Ch. 7 — écrire un nombre de 10 à 19 d'après une représentation, une phrase ou une somme
+function makeDigitsNumber({n, source}){
+  const t = Math.floor(n/10), u = n%10;
+  const visual = source==='frames' ? framesSVG(n,1.3)
+    : source==='bag' ? bagsSVG(t,u,1.3)
+    : reprHTML(source, n);
+  return makeDigits({ visualHTML:visual, rows:[numberRow(t,u)], instruction:"Écris le nombre.", answerLabel:`${n}` });
+}
+// Ch. 8 — compter dizaines et unités PUIS écrire le nombre
+function makeDigitsFull({t,u,source}){
+  const shape = pick(SHAPES), color = pick(PALETTE), n = t*10+u;
+  const visual = source==='rods' ? baseTenSVG(t,u,1.25)
+    : source==='frames' ? framesSVG(n,1.2)
+    : source==='bag' ? bagsSVG(t,u,1.2)
+    : packetsSVG(t,u,shape,color);
+  return makeDigits({ visualHTML:visual, rows:[countRow(t,u), numberRow(t,u)],
+    instruction:"Complète pour écrire le nombre.", answerLabel:`${tensPhrase(t,u)}, soit ${n}` });
+}
+// Bonus — recopier un nombre à deux chiffres identiques (33, 44…)
+function makeDigitsCopy(n){
+  const d = String(n).split('').map(Number);
+  return makeDigits({ visualHTML:`<div class="prompt-big" style="font-size:48px; letter-spacing:.14em; color:#c9c1ad">${n}</div>`,
+    rows:[{ cells:[{answer:d[0],label:''},{answer:d[1],label:''}] }],
+    instruction:"Écris le nombre en chiffres.", answerLabel:`${n}`, bonus:true });
+}
+
+// Ex. "Dessine les points qui correspondent à chaque nombre" — cadres de 10 à remplir
+function makeFramesDraw({n}){
+  const needed = Math.ceil(n/10);
+  return { kind:'frames_draw', n, frames:Math.min(7, needed+1),
+    instruction:`Dessine ${n} points : remplis les cadres de 10 un par un.`,
+    answerLabel:`${n} points, soit ${tensPhrase(Math.floor(n/10), n%10)}`, bonus:false };
+}
+
+// Ex. "Entoure ..." avec options à toucher (une seule bonne réponse)
+function makePick({promptHTML, options, answerIdx, cols, big, instruction, speech, answerLabel, extraHTML, hint}){
+  return { kind:'pick', promptHTML, options, answerIdx, cols:cols||options.length, big:!!big, instruction, speech, answerLabel, extraHTML, hint, bonus:false };
+}
+// Variantes (t,u) plausibles mais fausses d'un matériel : dizaines/unités inversées ou décalées d'un cran
+function wrongTensUnits(t, u, count){
+  const cands = [];
+  if(u!==t) cands.push([u,t]);
+  [[t,u+1],[t,u-1],[t+1,u],[t-1,u]].forEach(c=>cands.push(c));
+  const valid = cands.filter(([a,b])=>a>=0&&a<=9&&b>=0&&b<=9&&a+b>0&&!(a===t&&b===u));
+  const first = valid.slice(0,1), rest = shuffle(valid.slice(1));
+  return first.concat(rest).slice(0,count);
+}
+// Ch. 6 — texte -> matériel juste (k options)
+function makePickMaterial({t,u,k,instruction}){
+  const unitsFirst = Math.random()<0.4;
+  const phrase = tensPhrase(t,u,unitsFirst);
+  const wrongs = wrongTensUnits(t,u,k-1);
+  const opts = shuffle([{t,u,ok:true}].concat(wrongs.map(([a,b])=>({t:a,u:b,ok:false}))));
+  return makePick({
+    promptHTML:`<div class="prompt-big">${phrase}</div>`,
+    options: opts.map(o=>({html:baseTenSVG(o.t,o.u,1)})),
+    answerIdx: opts.findIndex(o=>o.ok),
+    instruction, answerLabel:phrase, hint:"Touche le matériel qui correspond" });
+}
+// Ch. 6 — matériel -> écriture juste (3 phrases)
+function makePickPhrase({t,u}){
+  const phrase = tensPhrase(t,u,false);
+  const wrongs = wrongTensUnits(t,u,2);
+  const opts = shuffle([{t,u,ok:true}].concat(wrongs.map(([a,b])=>({t:a,u:b,ok:false}))));
+  return makePick({
+    promptHTML: baseTenSVG(t,u,1.25),
+    options: opts.map(o=>({html:tensPhrase(o.t,o.u,Math.random()<0.4)})),
+    answerIdx: opts.findIndex(o=>o.ok), cols:1,
+    instruction:"Touche l'écriture qui correspond au matériel.", answerLabel:phrase, hint:"Touche la bonne écriture" });
+}
+// Ch. 8 — représentation -> écriture en chiffres (pièges : chiffre seul, chiffres inversés)
+function makePickNumber({t,u,source}){
+  const n = t*10+u, shape = pick(SHAPES), color = pick(PALETTE);
+  const visual = source==='rods' ? baseTenSVG(t,u,1.25) : source==='frames' ? framesSVG(n,1.2) : source==='bag' ? bagsSVG(t,u,1.2) : packetsSVG(t,u,shape,color);
+  const cands = [u, t*10, u*10+t, t].filter(v=>v!==n && v>0);
+  const wrongs = sampleDistinct(Array.from(new Set(cands)), 2);
+  const vals = shuffle([n].concat(wrongs));
+  return makePick({ promptHTML:visual, options:vals.map(v=>({html:String(v)})), answerIdx:vals.indexOf(n), big:true,
+    instruction:"Entoure l'écriture en chiffres qui est juste.", answerLabel:`${n}`, hint:"Touche le bon nombre" });
+}
+
+// Ch. 7 — colorier de la même couleur les cartes qui représentent le même nombre
+function makeMatchRepr(){
+  const nums = sampleDistinct([11,12,13,14,15,16,17,18,19], 3).sort((a,b)=>a-b);
+  const cards = [];
+  nums.forEach((n,ci)=>{
+    sampleDistinct(['frames','bag','sum','words'], 2).forEach(kind=>cards.push({ html:reprHTML(kind,n), ci }));
+  });
+  return { kind:'match_repr', nums, cards:shuffle(cards),
+    instruction:"Colorie de la même couleur ce qui représente le même nombre.",
+    answerLabel:nums.join(', '), bonus:false };
+}
+
+// Ch. 9 — comparaison de deux nombres (écarts variés : dizaines différentes, mêmes dizaines,
+// même chiffre des unités, un seul chiffre contre deux)
+function numPair(){
+  const v = pick(['diffTens','diffTens','sameTens','oneDigit','sameUnits']);
+  let a, b;
+  if(v==='sameTens'){ const t = rnd(1,5); do{ a = t*10+rnd(0,9); b = t*10+rnd(0,9); }while(a===b); }
+  else if(v==='oneDigit'){ a = rnd(2,9); b = rnd(10,59); }
+  else if(v==='sameUnits'){ const u = rnd(0,9); let t1, t2; do{ t1 = rnd(1,5); t2 = rnd(1,5); }while(t1===t2); a = t1*10+u; b = t2*10+u; }
+  else { do{ a = rnd(10,59); b = rnd(10,59); }while(Math.floor(a/10)===Math.floor(b/10)); }
+  return Math.random()<0.5 ? [a,b] : [b,a];
+}
+function stripHTML(lo, hi){
+  return `<div class="strip">${Array.from({length:hi-lo+1},(_,i)=>`<div class="strip-cell">${lo+i}</div>`).join('')}</div>`;
+}
+function makePickCompare({mode, variant}){
+  let a, b, extraHTML = '';
+  if(variant==='strip'){
+    const lo = rnd(15,36), hi = lo+13;
+    do{ a = rnd(lo,hi); b = rnd(lo,hi); }while(a===b);
+    extraHTML = stripHTML(lo,hi);
+  } else [a,b] = numPair();
+  const target = mode==='biggest' ? Math.max(a,b) : Math.min(a,b);
+  const word = mode==='biggest' ? 'grand' : 'petit';
+  const instruction = variant==='card' ? "Entoure la carte gagnante : celle qui a le plus grand nombre."
+    : variant==='strip' ? `Entoure le nombre le plus ${word}. Aide-toi de la bande numérique.`
+    : `Entoure le nombre le plus ${word}.`;
+  return makePick({ options:[a,b].map(v=>({html:String(v)})), answerIdx:[a,b].indexOf(target), big:true, extraHTML,
+    instruction, answerLabel:`${target}`, hint:"Touche ta réponse" });
+}
+function makeSign(){
+  const [a,b] = numPair();
+  const answer = a<b ? '<' : '>';
+  return { kind:'sign', a, b, answer,
+    instruction:"Choisis le signe < ou >.", speech:"Choisis le bon signe : plus petit que, ou plus grand que.",
+    answerLabel:`${a} ${answer} ${b}`, bonus:false };
+}
+const ANIMALS = ['le chevreuil','le lynx','le lièvre','le marcassin','le blaireau','le renard','le loup','le sanglier'];
+const PAW_SVG = `<svg width="22" height="22" viewBox="0 0 24 24"><circle cx="6" cy="10" r="2.6" fill="#8c8473"/><circle cx="10" cy="5.5" r="2.6" fill="#8c8473"/><circle cx="16" cy="5.5" r="2.6" fill="#8c8473"/><circle cx="19.5" cy="10" r="2.6" fill="#8c8473"/><path d="M12 11c-3.5 0-6 3-6 5.5 0 2 1.6 3 3.2 2.6 1-.3 1.8-.6 2.8-.6s1.8.3 2.8.6c1.6.4 3.2-.6 3.2-2.6 0-2.5-2.5-5.5-6-5.5z" fill="#8c8473"/></svg>`;
+function makeAnimalPick({mode}){
+  const names = sampleDistinct(ANIMALS, 3);
+  let kgs, guard = 0;
+  do{ kgs = sampleDistinct(Array.from({length:34},(_,i)=>i+3), 3); guard++; }
+  while(guard<100 && [...kgs].sort((x,y)=>x-y).some((v,i,arr)=>i>0 && v-arr[i-1]<3));
+  const targetKg = mode==='heaviest' ? Math.max(...kgs) : Math.min(...kgs);
+  const idx = kgs.indexOf(targetKg);
+  const word = mode==='heaviest' ? 'plus lourd' : 'moins lourd';
+  return makePick({
+    options: names.map((nm,i)=>({html:`<div class="animal">${PAW_SVG}<div class="animal-name">${nm}</div><div class="animal-kg">${kgs[i]} kg</div></div>`})),
+    answerIdx:idx,
+    instruction:`Entoure le nom de l'animal le ${word}.`, answerLabel:`${names[idx]} (${targetKg} kg)`, hint:"Touche l'animal" });
+}
+
+function buildChapterNE06(){
+  const items = [];
+  // Exercice 1 — compter les dizaines et les unités sur le matériel
+  for(let i=0;i<4;i++) items.push(makeDigitsCount({t:rnd(1,6), u:rnd(1,9)}));
+  // Exercice 2 — choisir le matériel qui correspond à une phrase (2 propositions)
+  for(let i=0;i<3;i++){ let t, u; do{ t = rnd(1,7); u = rnd(1,9); }while(t===u); items.push(makePickMaterial({t,u,k:2,instruction:"Entoure la représentation juste."})); }
+  // Exercice 3 — idem avec 3 propositions
+  for(let i=0;i<3;i++){ let t, u; do{ t = rnd(2,7); u = rnd(1,9); }while(t===u); items.push(makePickMaterial({t,u,k:3,instruction:"Entoure le matériel qui correspond."})); }
+  // Exercice 5 — relier matériel et écriture (ici : toucher la bonne écriture)
+  for(let i=0;i<3;i++){ let t, u; do{ t = rnd(2,6); u = rnd(1,9); }while(t===u); items.push(makePickPhrase({t,u})); }
+  // Bonus du jour — écrire des nombres
+  items.push(makeDigitsCopy(pick([33,44,55])));
+  return shuffleKeepBonusLast(items);
+}
+
+function buildChapterNE07(){
+  const items = [];
+  // Exercice 1 / 3 — écrire le nombre représenté (cadres de 10, sacs de billes) ou donné en somme
+  const mix = shuffle(['frames','bag','sum','words']);
+  const nums = sampleDistinct([11,12,13,14,15,16,17,18,19], 9);
+  mix.forEach((src,i)=>items.push(makeDigitsNumber({n:nums[i], source:src})));
+  // Exercice 2 — écrire le nombre dit par une phrase ou une somme (dont "1 dizaine" = 10)
+  items.push(makeDigitsNumber({n:10, source:'words'}));
+  for(let i=0;i<2;i++) items.push(makeDigitsNumber({n:nums[4+i], source:'words'}));
+  for(let i=0;i<2;i++) items.push(makeDigitsNumber({n:nums[6+i], source:'sum'}));
+  // Exercice 4 — colorier de la même couleur les représentations du même nombre
+  for(let i=0;i<2;i++) items.push(makeMatchRepr());
+  // Bonus du jour — compléter la suite des nombres jusqu'à 19
+  const bonus = makeNumberLine({mode:'bank', lo:0, hi:19, extras:2, instruction:"Complète la suite des nombres."});
+  bonus.bonus = true;
+  items.push(bonus);
+  return shuffleKeepBonusLast(items);
+}
+
+function buildChapterNE08(){
+  const items = [];
+  // Exercices 1 et 4 — compter dizaines/unités puis écrire le nombre
+  shuffle(['rods','packets','frames','bag','rods']).forEach(src=>{
+    items.push(makeDigitsFull({t:rnd(2,5), u:rnd(0,9), source:src}));
+  });
+  // Exercices 2 et 3 — dessiner les points dans des cadres de 10
+  sampleDistinct([21,27,31,34,38,42,46,48,53,57], 4).forEach(n=>items.push(makeFramesDraw({n})));
+  // Exercice 5 — choisir l'écriture en chiffres
+  shuffle(['bag','frames','rods']).forEach(src=>items.push(makePickNumber({t:rnd(2,5), u:rnd(1,9), source:src})));
+  // Bonus du jour — continuer la frise
+  items.push(makePattern());
+  return shuffleKeepBonusLast(items);
+}
+
+function buildChapterNE09(){
+  const items = [];
+  // Exercice 1 — la carte gagnante
+  for(let i=0;i<2;i++) items.push(makePickCompare({mode:'biggest', variant:'card'}));
+  // Exercice 2 — le plus petit, avec la bande numérique
+  for(let i=0;i<3;i++) items.push(makePickCompare({mode:'smallest', variant:'strip'}));
+  // Exercice 4 — le plus grand
+  for(let i=0;i<2;i++) items.push(makePickCompare({mode:'biggest', variant:'plain'}));
+  // Exercices 3 et 5 — le signe < ou >
+  for(let i=0;i<5;i++) items.push(makeSign());
+  // Exercice 6 — l'animal le moins lourd / le plus lourd
+  items.push(makeAnimalPick({mode:'lightest'}));
+  items.push(makeAnimalPick({mode:'heaviest'}));
+  // Bonus du jour — écrire des nombres
+  items.push(makeDigitsCopy(pick([66,77])));
+  return shuffleKeepBonusLast(items);
+}
+
 /* ============================================================
    SESSION EN COURS
    ============================================================ */
@@ -1188,6 +1597,11 @@ function renderSessionItem(){
     : item.kind==='tap_order' ? []
     : item.kind==='group_ten' ? { assigned:Array(item.count).fill(null), nextGroup:0 }
     : item.kind==='compare_ten' ? { assigned:item.groups.map(g=>Array(g.count).fill(null)), nextGroup:[0,0], selected:null }
+    : item.kind==='digits' ? { vals:Array(item.rows.reduce((s,r)=>s+r.cells.length,0)).fill(null), sel:0 }
+    : item.kind==='pick' ? null
+    : item.kind==='frames_draw' ? new Set()
+    : item.kind==='sign' ? null
+    : item.kind==='match_repr' ? { active:0, assigned:Array(item.cards.length).fill(null) }
     : item.sequence.map((v,i)=> i<item.hiddenFrom ? v : null);
 
   el.innerHTML = `
@@ -1206,10 +1620,10 @@ function renderSessionItem(){
     <div class="session-actions"><button class="btn btn-primary" id="validate-btn">Valider</button></div>
   `;
   document.getElementById('session-exit').addEventListener('click', exitSession);
-  document.getElementById('speak-btn').addEventListener('click', ()=>speak(item.instruction));
+  document.getElementById('speak-btn').addEventListener('click', ()=>speak(item.speech||item.instruction));
   renderInteraction(item);
   document.getElementById('validate-btn').addEventListener('click', onValidate);
-  speak(item.instruction);
+  speak(item.speech||item.instruction);
 }
 
 // Bille classique : rond plein + petit reflet, pas de forme "tremblée"
@@ -1647,6 +2061,118 @@ function renderInteraction(item){
       session.tapState.selected = parseInt(btn.dataset.gi);
       renderInteraction(item);
     }));
+  } else if(item.kind==='digits'){
+    let k = 0;
+    const rowsHTML = item.rows.map(r=>`<div class="dg-row">${r.prefix?`<span class="dg-pre">${r.prefix}</span>`:''}${
+      r.cells.map((c,ci)=>{
+        const idx = k++;
+        return `${ci>0&&r.joiner?`<span class="dg-join">${r.joiner}</span>`:''}<span class="dg-cell"><span class="dg-box" data-k="${idx}"></span>${c.label?`<span class="dg-label">${c.label}</span>`:''}</span>`;
+      }).join('')}</div>`).join('');
+    zone.innerHTML = `${item.visualHTML?`<div class="visual-card">${item.visualHTML}</div>`:''}
+      <div class="dg-rows">${rowsHTML}</div>
+      <div class="digit-picker numline-pad dg-pad">${Array.from({length:10},(_,n)=>`<button class="digit-btn" data-n="${n}">${n}</button>`).join('')}</div>
+      <div class="interaction-hint">Touche une case, puis un chiffre</div>`;
+    const st = session.tapState;
+    const repaint = ()=>{
+      zone.querySelectorAll('.dg-box').forEach(el=>{
+        const i = parseInt(el.dataset.k), v = st.vals[i];
+        el.textContent = v!=null ? v : '';
+        el.classList.toggle('filled', v!=null);
+        el.classList.toggle('active', st.sel===i);
+      });
+    };
+    repaint();
+    zone.querySelectorAll('.dg-box').forEach(el=>el.addEventListener('click', ()=>{
+      if(session.answered) return;
+      const i = parseInt(el.dataset.k);
+      st.vals[i] = null; st.sel = i;
+      repaint();
+    }));
+    zone.querySelectorAll('.numline-pad .digit-btn').forEach(btn=>btn.addEventListener('click', ()=>{
+      if(session.answered) return;
+      st.vals[st.sel] = parseInt(btn.dataset.n);
+      const next = st.vals.findIndex(v=>v==null);
+      if(next>=0) st.sel = next;
+      repaint();
+    }));
+  } else if(item.kind==='pick'){
+    zone.innerHTML = `${item.promptHTML?`<div class="visual-card">${item.promptHTML}</div>`:''}
+      <div class="opt-row" style="grid-template-columns:repeat(${item.cols},1fr)">${
+        item.options.map((o,i)=>`<button class="opt-card ${item.big?'big':''} ${session.tapState===i?'selected':''}" data-i="${i}">${o.html}</button>`).join('')
+      }</div>
+      ${item.extraHTML||''}
+      <div class="interaction-hint">${item.hint||'Touche ta réponse'}</div>`;
+    zone.querySelectorAll('.opt-card').forEach(card=>card.addEventListener('click', ()=>{
+      if(session.answered) return;
+      session.tapState = parseInt(card.dataset.i);
+      zone.querySelectorAll('.opt-card').forEach(c=>c.classList.toggle('selected', c===card));
+    }));
+  } else if(item.kind==='frames_draw'){
+    const F = item.frames, cols = F<=2 ? F : F<=4 ? 2 : 3;
+    const cell=18, fw=cell*5, fh=cell*2, gx=12, gy=10, VBW=300;
+    const rows = Math.ceil(F/cols);
+    const totalW = cols*fw+(cols-1)*gx, x0 = (VBW-totalW)/2;
+    const VBH = rows*fh+(rows-1)*gy+8;
+    zone.innerHTML = `<div class="decompose-head">
+        <div class="target-badge">${item.n}</div>
+        <div class="equation-caption"><b id="fr-count">0</b> point(s)</div>
+      </div>
+      <div class="draw-wrap" id="frames-wrap"><svg id="frames-svg" viewBox="0 0 ${VBW} ${VBH}" class="draw-svg"></svg></div>
+      <div class="interaction-hint">Touche une case pour dessiner un point, touche un point pour l'effacer</div>`;
+    const svg = document.getElementById('frames-svg');
+    const paint = ()=>{
+      let h = '';
+      for(let f=0;f<F;f++){
+        const x = x0+(f%cols)*(fw+gx), y = 4+Math.floor(f/cols)*(fh+gy);
+        h += `<rect x="${x}" y="${y}" width="${fw}" height="${fh}" rx="4" fill="#fff" stroke="${INK}" stroke-width="2"/>`;
+        for(let j=0;j<10;j++){
+          const cx = x+(j%5)*cell, cy = y+Math.floor(j/5)*cell, id = f*10+j, on = session.tapState.has(id);
+          h += `<rect data-c="${id}" x="${cx}" y="${cy}" width="${cell}" height="${cell}" fill="#fff" fill-opacity="0.01" stroke="${INK}" stroke-width="1"/>`;
+          if(on) h += `<circle cx="${cx+cell/2}" cy="${cy+cell/2}" r="${cell*0.34}" fill="${INK}" pointer-events="none"/>`;
+        }
+      }
+      svg.innerHTML = h;
+      document.getElementById('fr-count').textContent = session.tapState.size;
+    };
+    paint();
+    svg.addEventListener('click', (e)=>{
+      if(session.answered) return;
+      const c = e.target.dataset && e.target.dataset.c;
+      if(c==null) return;
+      const id = parseInt(c);
+      if(session.tapState.has(id)) session.tapState.delete(id); else session.tapState.add(id);
+      paint();
+    });
+  } else if(item.kind==='sign'){
+    const s = session.tapState;
+    zone.innerHTML = `<div class="sign-row"><span class="sign-num">${item.a}</span><span class="sign-slot ${s?'filled':''}" id="sign-slot">${s==='<'?'&lt;':s==='>'?'&gt;':''}</span><span class="sign-num">${item.b}</span></div>
+      <div class="sign-btns"><button class="sign-btn" data-s="&lt;">&lt;</button><button class="sign-btn" data-s="&gt;">&gt;</button></div>
+      <div class="interaction-hint">Touche le signe à mettre entre les deux nombres</div>`;
+    zone.querySelectorAll('.sign-btn').forEach(btn=>btn.addEventListener('click', ()=>{
+      if(session.answered) return;
+      session.tapState = btn.textContent;
+      const slot = document.getElementById('sign-slot');
+      slot.textContent = session.tapState; slot.classList.add('filled');
+    }));
+  } else if(item.kind==='match_repr'){
+    const st = session.tapState;
+    zone.innerHTML = `<div class="rep-palette">${item.nums.map((n,i)=>`<button class="rep-chip ${st.active===i?'active':''}" data-ci="${i}" style="--mc:${MATCH_COLORS[i]}">${n}</button>`).join('')}</div>
+      <div class="rep-grid">${item.cards.map((c,i)=>{
+        const a = st.assigned[i];
+        return `<button class="rep-card" data-i="${i}" style="${a!=null?`border-color:${MATCH_COLORS[a]}; background:${MATCH_COLORS[a]}22`:''}">${c.html}</button>`;
+      }).join('')}</div>
+      <div class="interaction-hint">Touche un nombre en haut, puis touche tout ce qui le représente</div>`;
+    zone.querySelectorAll('.rep-chip').forEach(btn=>btn.addEventListener('click', ()=>{
+      if(session.answered) return;
+      st.active = parseInt(btn.dataset.ci);
+      renderInteraction(item);
+    }));
+    zone.querySelectorAll('.rep-card').forEach(card=>card.addEventListener('click', ()=>{
+      if(session.answered) return;
+      const i = parseInt(card.dataset.i);
+      st.assigned[i] = st.assigned[i]===st.active ? null : st.active;
+      renderInteraction(item);
+    }));
   }
 }
 
@@ -1699,6 +2225,20 @@ function checkItem(item){
   if(item.kind==='group_ten') return session.tapState.nextGroup===Math.floor(item.count/10);
   if(item.kind==='compare_ten') return session.tapState.selected===item.targetIdx
     && item.groups.every((g,gi)=> session.tapState.nextGroup[gi]===Math.floor(g.count/10));
+  if(item.kind==='digits'){
+    const answers = item.rows.flatMap(r=>r.cells.map(c=>c.answer));
+    return answers.every((a,i)=>session.tapState.vals[i]===a);
+  }
+  if(item.kind==='pick') return session.tapState===item.answerIdx;
+  if(item.kind==='sign') return session.tapState===item.answer;
+  if(item.kind==='match_repr') return item.cards.every((c,i)=>session.tapState.assigned[i]===c.ci);
+  if(item.kind==='frames_draw'){
+    const per = Array(item.frames).fill(0);
+    session.tapState.forEach(id=>per[Math.floor(id/10)]++);
+    const got = per.filter(c=>c>0).sort((a,b)=>b-a);
+    const want = Array(Math.floor(item.n/10)).fill(10).concat(item.n%10 ? [item.n%10] : []);
+    return got.length===want.length && got.every((c,i)=>c===want[i]);
+  }
   if(item.kind==='lasso'){
     let inCat=0, outCat=0;
     session.tapState.forEach(i=>{ item.objects[i].cat===item.targetIdx ? inCat++ : outCat++; });
@@ -1755,6 +2295,21 @@ function markAnswered(item, ok){
   } else if(item.kind==='compare_ten'){
     const btn = document.querySelector(`.pick-btn[data-gi="${session.tapState.selected}"]`);
     if(btn) btn.style.boxShadow = `0 0 0 3px ${col} inset`;
+  } else if(item.kind==='digits'){
+    document.querySelectorAll('.dg-box').forEach(el=>{ el.style.boxShadow = `0 0 0 3px ${col} inset`; });
+  } else if(item.kind==='pick'){
+    const card = document.querySelector(`.opt-card[data-i="${session.tapState}"]`);
+    if(card) card.style.boxShadow = `0 0 0 3px ${col} inset`;
+  } else if(item.kind==='sign'){
+    const slot = document.getElementById('sign-slot');
+    if(slot) slot.style.boxShadow = `0 0 0 3px ${col} inset`;
+  } else if(item.kind==='frames_draw'){
+    document.getElementById('frames-wrap').style.boxShadow = `0 0 0 3px ${col} inset`;
+  } else if(item.kind==='match_repr'){
+    document.querySelectorAll('.rep-card').forEach(el=>{
+      const i = parseInt(el.dataset.i);
+      el.style.boxShadow = `0 0 0 3px ${session.tapState.assigned[i]===item.cards[i].ci ? 'var(--ok)' : 'var(--bad)'} inset`;
+    });
   }
 }
 
